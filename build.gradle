@@ -1,0 +1,115 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+apply plugin: 'com.jfrog.bintray'
+
+group 'onethreeseven'
+version '0.0.1-SNAPSHOT'
+
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'idea'
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+mainClassName = "onethreeseven.spm.Main"
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven{url 'https://dl.bintray.com/lukehb/137-collections'} //some custom collections we use
+    maven{url 'https://dl.bintray.com/lukehb/137-common'} //some custom utilities we use
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile group: 'onethreeseven', name: 'collections', version: '0.0.1'
+    compile group: 'onethreeseven', name: 'common', version: '0.0.1'
+    compile group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
+    compile group: 'com.beust', name: 'jcommander', version: '1.48'
+}
+
+jar {
+    manifest {
+        attributes("Implementation-Title": project.name,
+                "Implementation-Version": version,
+                'Built-By': System.getProperty('user.name'),
+                'Built-Date': new Date(),
+                'Built-JDK': System.getProperty('java.version'),
+                "Main-Class": mainClassName)
+    }
+}
+
+jar.dependsOn(test)
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    classifier "sources"
+}
+
+task uberJar(type: Jar, dependsOn: [':compileJava']) {
+    from files(sourceSets.main.output.classesDir)
+    from configurations.runtime.asFileTree.files.collect { zipTree(it) }
+    classifier "fat"
+}
+
+artifacts {
+    archives sourcesJar
+    archives uberJar
+}
+
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            from components.java
+            groupId group
+            artifactId project.name
+            version version
+            artifact sourcesJar
+        }
+        MyFatJar(MavenPublication) {
+            from components.java
+            groupId group
+            artifactId project.name
+            version version
+            artifact uberJar
+        }
+    }
+}
+
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.bintrayUser : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayKey') ? project.bintrayKey : System.getenv('BINTRAY_KEY')
+    publications = ['MyPublication', 'MyFatJar']
+    publish = true //If version should be auto published after an upload
+    pkg {
+        repo = '137-SPM'
+        name = '137-SPM'
+        licenses = ['MIT']
+        desc = 'Sequential Pattern Mining algorithms written in Java - comes with a CLI.'
+        websiteUrl = 'https://github.com/lukehb/137-SPM'
+        issueTrackerUrl = 'https://github.com/lukehb/137-SPM/issues'
+        vcsUrl = 'https://github.com/lukehb/137-SPM.git'
+        labels = ['SPM', 'java', 'CLI', 'data-mining', 'sequential pattern mining']
+        publicDownloadNumbers = true
+        githubRepo = 'lukehb/137-SPM'
+        githubReleaseNotesFile = 'README.md'
+    }
+}
