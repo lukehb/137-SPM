@@ -1,7 +1,10 @@
 package onethreeseven.spm.data;
 
+import onethreeseven.collections.IntArray;
+
 import java.io.*;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * Reads the SPMF format and makes each pattern available through iteration.
@@ -13,19 +16,28 @@ import java.util.Arrays;
 public class SPMFParserIterator {
 
     private static final String delimiter = " ";
+    private static final Logger logger = Logger.getLogger(SPMFParserIterator.class.getSimpleName());
 
-    private final BufferedReader reader;
+    private BufferedReader reader;
 
     //current line fields
     private int[] curPattern;
     private int curCover;
     private int curSup;
 
-    public SPMFParserIterator(File patternFile) throws FileNotFoundException {
-        this.reader = new BufferedReader(new FileReader(patternFile));
+    public SPMFParserIterator(File patternFile) {
+        try{
+            this.reader = new BufferedReader(new FileReader(patternFile));
+        }catch (FileNotFoundException e){
+            logger.severe("Could not find spmf output file to parse: " + e.getMessage());
+        }
+
     }
 
     public boolean advance(){
+        if(reader == null){
+            return false;
+        }
         try {
             if(!reader.ready()){return false;}
             String line = reader.readLine();
@@ -50,6 +62,7 @@ public class SPMFParserIterator {
     }
 
     public void close(){
+        if(reader == null){return;}
         try {
             this.reader.close();
         } catch (IOException e) {
@@ -63,8 +76,7 @@ public class SPMFParserIterator {
         if(parts.length == 3){
             //35244 35246 32297 #COVER:12 #SUP:6
             String patternPart = parts[0];
-            String[] patternTokens = patternPart.split(delimiter);
-            this.curPattern = Arrays.stream(patternTokens).mapToInt(Integer::parseInt).toArray();
+            this.curPattern = SPMFParser.parseSequence(patternPart, delimiter);
 
             String coverPart = parts[1];
             this.curCover = Integer.parseInt(coverPart.split(":")[1].trim());
@@ -75,8 +87,7 @@ public class SPMFParserIterator {
         else if(parts.length == 2){
             //35244 35246 32297 #SUP:6
             String patternPart = parts[0];
-            String[] patternTokens = patternPart.split(delimiter);
-            this.curPattern = Arrays.stream(patternTokens).mapToInt(Integer::parseInt).toArray();
+            this.curPattern = SPMFParser.parseSequence(patternPart, delimiter);
 
             String supPart = parts[1];
             this.curSup = Integer.parseInt(supPart.split(":")[1].trim());
@@ -84,9 +95,9 @@ public class SPMFParserIterator {
         //only have the pattern part
         else if(parts.length == 1){
             String patternPart = parts[0];
-            String[] patternTokens = patternPart.split(delimiter);
-            this.curPattern = Arrays.stream(patternTokens).mapToInt(Integer::parseInt).toArray();
+            this.curPattern = SPMFParser.parseSequence(patternPart, delimiter);
         }
     }
+
 
 }

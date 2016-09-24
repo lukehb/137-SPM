@@ -6,9 +6,7 @@ import com.beust.jcommander.converters.FileConverter;
 import onethreeseven.spm.data.GephiWriter;
 import onethreeseven.spm.data.SPMFParserIterator;
 import onethreeseven.common.util.FileUtil;
-
 import java.io.File;
-import java.io.FileNotFoundException;
 
 /**
  * Command to convert a SPMF file to the gephi format.
@@ -47,14 +45,10 @@ public class SPMFToGephiCommand extends AbstractCommand {
         }
 
         //do the actual conversion and writing
-        try {
-            SPMFParserIterator iter = new SPMFParserIterator(in);
-            new GephiWriter().write(out, iter);
-            System.out.println("Collect output gephi csv at: " + out.getAbsolutePath());
+        SPMFParserIterator iter = new SPMFParserIterator(in);
+        new GephiWriter().write(out, iter);
+        System.out.println("Collect output gephi csv at: " + out.getAbsolutePath());
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
 
     }
 }

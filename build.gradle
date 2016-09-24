@@ -12,7 +12,7 @@ buildscript {
 apply plugin: 'com.jfrog.bintray'
 
 group 'onethreeseven'
-version '0.0.1-SNAPSHOT'
+version '0.0.2'
 
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -67,6 +67,14 @@ task uberJar(type: Jar, dependsOn: [':compileJava']) {
     from files(sourceSets.main.output.classesDir)
     from configurations.runtime.asFileTree.files.collect { zipTree(it) }
     classifier "fat"
+    manifest {
+        attributes("Implementation-Title": project.name,
+                "Implementation-Version": version,
+                'Built-By': System.getProperty('user.name'),
+                'Built-Date': new Date(),
+                'Built-JDK': System.getProperty('java.version'),
+                "Main-Class": mainClassName)
+    }
 }
 
 artifacts {
@@ -97,7 +105,7 @@ publishing {
 bintray {
     user = project.hasProperty('bintrayUser') ? project.bintrayUser : System.getenv('BINTRAY_USER')
     key = project.hasProperty('bintrayKey') ? project.bintrayKey : System.getenv('BINTRAY_KEY')
-    publications = ['MyPublication', 'MyFatJar']
+    publications = ['MyFatJar']
     publish = true //If version should be auto published after an upload
     pkg {
         repo = '137-SPM'

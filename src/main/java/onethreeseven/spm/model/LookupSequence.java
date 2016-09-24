@@ -82,9 +82,9 @@ public class LookupSequence {
     }
 
     /**
-     * @param queryWithGaps A query nodeSequence (with gaps allowed)
-     * @return Whether or not this lookup nodeSequence contains the query nodeSequence in some form.
-     *         Note: The query nodeSequence does not have to be contiguous.
+     * @param queryWithGaps A query sub-sequence (with gaps allowed)
+     * @return Whether or not this lookup sequence contains the query sub-sequence in some form.
+     *         Note: The query sub-sequence does not have to be contiguous.
      */
     public boolean contains(final int[] queryWithGaps){
         int curIndex = -1;

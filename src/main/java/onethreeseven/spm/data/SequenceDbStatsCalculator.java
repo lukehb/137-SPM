@@ -68,7 +68,7 @@ public class SequenceDbStatsCalculator {
         return null;
     }
 
-    private double getRecurrence(TIntIntHashMap edgeOccurrences){
+    public static double getRecurrence(TIntIntHashMap edgeOccurrences){
         double totalOccurrences = 0;
         double totalDuplicates = 0;
 
@@ -82,6 +82,26 @@ public class SequenceDbStatsCalculator {
             }
         }
         return totalDuplicates/totalOccurrences;
+    }
+
+    public int getTotalSequences() {
+        return totalSequences;
+    }
+
+    public int getTotalItems() {
+        return totalItems;
+    }
+
+    public int getnDistinctItems() {
+        return nDistinctItems;
+    }
+
+    public double getAvgSequenceLength() {
+        return avgSequenceLength;
+    }
+
+    public double getRecurrence() {
+        return recurrence;
     }
 
     public void printStats(){

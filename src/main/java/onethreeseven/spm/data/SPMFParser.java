@@ -51,7 +51,7 @@ public class SPMFParser {
                 //we only care about lines that are read during the "read up to #" mode.
                 if(line != null && !line.isEmpty()){
                     //parse
-                    int[] seq = parseSequence(line);
+                    int[] seq = parseSequence(line, this.delimiter);
                     //check if the sequence is long enough, and add it
                     if(seq.length >= minSeqLength){
                         sequences.add(seq);
@@ -70,7 +70,7 @@ public class SPMFParser {
         return out;
     }
 
-    private int[] parseSequence(String line){
+    protected static int[] parseSequence(String line, String delimiter){
 
         line = line.trim();
         String[] lineParts = line.split(delimiter);
