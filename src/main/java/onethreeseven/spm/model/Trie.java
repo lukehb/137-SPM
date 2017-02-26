@@ -116,7 +116,7 @@ public class Trie<T> {
 
     /**
      * Checks whether this sequence exists, whether it meets a minimum count support,
-     * and if it does then un-mark its parent. However, it it exists but doesn't meet the support
+     * and if it does then un-mark its parent. However, if it exists but doesn't meet the support
      * remove it.
      * @param sequence The candidate sequence.
      * @param minSup The minimum required support count.
@@ -171,7 +171,7 @@ public class Trie<T> {
 
             @Override
             public boolean hasNext() {
-                return sequenceOffset < sequence.length;
+                return sequenceOffset < sequence.length && curNode != null;
             }
 
             @Override
@@ -191,6 +191,7 @@ public class Trie<T> {
                 }
                 //case: no matching node could be found for the current symbol
                 else{
+                    curNode = null;
                     sequenceOffset = sequence.length;
                     return null;
                 }

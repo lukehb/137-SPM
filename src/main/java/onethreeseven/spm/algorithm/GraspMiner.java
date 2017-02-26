@@ -50,7 +50,7 @@ public class GraspMiner {
                     //save path
                     out.add(new RepSeq(
                             p.getCover(),
-                            p.visitations.getNumberOfVisitors(),
+                            p.visitations.getSupport(),
                             p.visitations,
                             p.getSequence()
                     ));
@@ -65,7 +65,7 @@ public class GraspMiner {
             SequenceEdge nextEdge = getNextEdge(g, seqIter);
             if(nextEdge == null){return p;}
             Visitations candidate = Visitations.tryConnect(p.visitations, nextEdge.getVisitors(), maxGap, minSup);
-            int candidateSup = candidate.getNumberOfVisitors();
+            int candidateSup = candidate.getSupport();
             //case: the expansion is supported, make this the new path
             if(candidateSup >= minSup){
                 ArrayList<SequenceEdge> edges = new ArrayList<>();
@@ -110,7 +110,7 @@ public class GraspMiner {
             SequenceEdge edge = curNode.getOutEdge(seqIter.peek());
             if(edge == null){continue;}
             //case: support not met
-            if(edge.getWeight() < minSup ){
+            if(edge.getSupport() < minSup ){
                 continue;
             }
             return edge;
@@ -136,7 +136,7 @@ public class GraspMiner {
                 Visitations merged =
                         Visitations.tryConnect(startingEdge.getVisitors(), nextEdge.getVisitors(), maxGap, minSup);
 
-                if(merged.getNumberOfVisitors() < minSup){
+                if(merged.getSupport() < minSup){
                     continue;
                 }
 
@@ -192,7 +192,7 @@ public class GraspMiner {
         }
 
         int getCover(){
-            return this.visitations.getTotalVisitedIndices();
+            return this.visitations.getCover();
         }
 
         @Override

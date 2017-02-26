@@ -1,5 +1,6 @@
 package onethreeseven.spm.model;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -67,6 +68,23 @@ public class LookupSequence {
     }
 
     /**
+     * Clear the indices of this symbol sequence
+     * @param symbolSequence the contiguous sub-sequence to clear
+     * @return whether the clear had any effect
+     */
+    public boolean clear(int[] symbolSequence){
+        int[] indices = getIndicesOf(symbolSequence);
+        if(indices == null){
+            return false;
+        }
+        for (int index : indices) {
+            this.sequence[index] = nullId;
+            size--;
+        }
+        return true;
+    }
+
+    /**
      * @return An int sequence of all symbols not set to the special "null" id.
      */
     public int[] getActiveSequence(){
@@ -79,6 +97,41 @@ public class LookupSequence {
             }
         }
         return seq;
+    }
+
+    /**
+     * Get the indices of the first occurrence on this contiguous sub-sequence.
+     * @param contiguousSequence the sub-sequence to find
+     * @return the indices of the sub-sequence
+     */
+    public int[] getIndicesOf(int[] contiguousSequence){
+        if(contiguousSequence.length == 0){
+            return null;
+        }
+
+        int[] indices = new int[contiguousSequence.length];
+        Arrays.fill(indices, -1);
+
+        Node startNode = headerTable.get(contiguousSequence[0]);
+        while(startNode != null){
+            int startIdx = startNode.index;
+            if(this.sequence[startIdx] != nullId){
+                indices[0] = startIdx;
+                for (int i = 1; i < contiguousSequence.length; i++) {
+                    int seqIdx = startIdx + i;
+                    if(seqIdx > this.sequence.length-1 || this.sequence[seqIdx] != contiguousSequence[i]){
+                        break;
+                    }
+                    indices[i] = seqIdx;
+                }
+                if(indices[contiguousSequence.length-1] != -1){
+                    return indices;
+                }
+            }
+            startNode = startNode.jump;
+        }
+
+        return null;
     }
 
     /**

@@ -16,6 +16,8 @@ public class Visitations {
 
     //<SequenceId, Visit indices>
     private final TIntObjectHashMap<IntRangeSet> visitorMap;
+    private int sup = 0;
+    private int cover = 0;
 
     public Visitations(Visitations toCopy){
         this.visitorMap = new TIntObjectHashMap<>(toCopy.visitorMap.size());
@@ -27,6 +29,7 @@ public class Visitations {
             IntRangeSet visitorsCopy = iter.value();
             this.visitorMap.put(seqId, new IntRangeSet(visitorsCopy));
         }
+        recalculateSupportAndCover();
     }
 
     public Visitations(){
@@ -40,20 +43,33 @@ public class Visitations {
             visitorMap.put(id, visitorIndices);
         }
         visitorIndices.add(indices);
+        recalculateSupportAndCover();
     }
 
-    public int getNumberOfVisitors(){
-        return visitorMap.size();
-    }
-
-    public int getTotalVisitedIndices(){
-        int cover = 0;
-        TIntObjectIterator<IntRangeSet> visitors = visitorMap.iterator();
-        while(visitors.hasNext()){
-            visitors.advance();
-            cover += visitors.value().getCover();
+    private void recalculateSupportAndCover(){
+        this.sup = visitorMap.size();
+        this.cover = 0;
+        {
+            TIntObjectIterator<IntRangeSet> visitors = visitorMap.iterator();
+            while(visitors.hasNext()){
+                visitors.advance();
+                cover += visitors.value().getCover();
+            }
         }
-        return cover;
+    }
+
+    /**
+     * @return The total number of sequences that visited.
+     */
+    public int getSupport(){
+        return this.sup;
+    }
+
+    /**
+     * @return The total number of indices contained in this visitation.
+     */
+    public int getCover(){
+        return this.cover;
     }
 
     public void addComplement(Visitations other){
@@ -77,6 +93,7 @@ public class Visitations {
                 }
             }
         }
+        recalculateSupportAndCover();
     }
 
     /**
@@ -112,41 +129,7 @@ public class Visitations {
             }
 
         }
-    }
-
-    public Visitations minus(Visitations other){
-        Visitations minus = new Visitations();
-
-        TIntObjectIterator<IntRangeSet> curIter = this.visitorMap.iterator();
-        while(curIter.hasNext()){
-            curIter.advance();
-            int seqId = curIter.key();
-            IntRangeSet curSeqIndices = curIter.value();
-            IntRangeSet otherSeqIndices = other.visitorMap.get(seqId);
-            //case: did not contain any indices from "other" for this sequence id
-            if(otherSeqIndices == null){
-                minus.visitorMap.put(seqId, new IntRangeSet(curSeqIndices));
-                continue;
-            }
-            //case: there is some ranges, check if they intersect/contain at all
-            IntRangeSet toAdd = new IntRangeSet();
-            for (Range curRange : curSeqIndices) {
-                for (Range otherRange : otherSeqIndices) {
-                    Range[] ranges = curRange.minus(otherRange);
-                    if(ranges == null){continue;}
-                    for (Range range : ranges) {
-                        if(range.getRange() > 0){
-                            toAdd.add(range);
-                        }
-                    }
-                }
-            }
-
-            if(!toAdd.isEmpty()){
-                minus.visitorMap.put(seqId, toAdd);
-            }
-        }
-        return minus;
+        recalculateSupportAndCover();
     }
 
     @Override
@@ -222,10 +205,12 @@ public class Visitations {
                 maxPossibleSup--;
                 //case: failed to connect too many times, support cannot be met now
                 if(maxPossibleSup < minSup){
+                    connected.recalculateSupportAndCover();
                     return connected;
                 }
             }
         }
+        connected.recalculateSupportAndCover();
         return connected;
     }
 
@@ -267,6 +252,7 @@ public class Visitations {
                 connected.visitorMap.put(seqId, connectedSeqIndices);
             }
         }
+        connected.recalculateSupportAndCover();
         return connected;
     }
 

@@ -1,9 +1,9 @@
 package onethreeseven.spm.model;
 
+import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * A node in a {@link SequenceGraph}, represent a single symbol in the graph.
@@ -16,8 +16,6 @@ public class SequenceNode implements Iterable<SequenceEdge> {
     //(i.e it is a directed edge, not a bi-directional edge). Note: the key is the node id.
     private final TIntObjectHashMap<SequenceEdge> outEdges;
     private final TIntObjectHashMap<SequenceEdge> inEdges;
-
-    private int cover = 0;
 
     public SequenceNode(int id) {
         this.id = id;
@@ -43,18 +41,12 @@ public class SequenceNode implements Iterable<SequenceEdge> {
             toNode.inEdges.put(this.id, edge);
         }
         edge.visit(sequenceId, thisNodeIndex);
-        cover += 1;
-        toNode.cover += 1;
         return newEdge;
     }
 
     void addOutEdge(SequenceEdge edge){
         SequenceEdge existingEdge = outEdges.get(edge.destination.id);
         SequenceNode toNode = edge.destination;
-        //update cover
-        int addedCover = edge.getCover();
-        cover += addedCover;
-        toNode.cover += addedCover;
         //case already exists
         if(existingEdge != null){
             existingEdge.getVisitors().union(edge.getVisitors());
@@ -72,9 +64,6 @@ public class SequenceNode implements Iterable<SequenceEdge> {
      */
     public boolean removeEdge(SequenceNode node, boolean inEdge){
         SequenceEdge removedEdge = (inEdge) ? inEdges.remove(node.id) : outEdges.remove(node.id);
-        if(removedEdge != null){
-            this.cover -= removedEdge.getCover();
-        }
         return removedEdge != null;
     }
 
@@ -86,17 +75,17 @@ public class SequenceNode implements Iterable<SequenceEdge> {
         return inEdges.get(adjNodeId);
     }
 
-    public int degree(){
+    public int outDegree(){
         return outEdges.size();
+    }
+
+    public int inDegree(){
+        return inEdges.size();
     }
 
     public void clear(){
         this.inEdges.clear();
         this.outEdges.clear();
-    }
-
-    public int getCover(){
-        return this.cover;
     }
 
     @Override
@@ -120,38 +109,38 @@ public class SequenceNode implements Iterable<SequenceEdge> {
 
     @Override
     public Iterator<SequenceEdge> iterator() {
+
+        //do in-edges first, then out-edges
         return new Iterator<SequenceEdge>() {
 
-            Iterator<SequenceEdge> mainIter = outEdges().iterator();
-            Iterator<SequenceEdge> otherIter = inEdges().iterator();
+            boolean swappedIters = false;
+            TIntObjectIterator<SequenceEdge> iter = inEdges.iterator();
 
             @Override
             public boolean hasNext() {
-                return mainIter.hasNext() || otherIter.hasNext();
-            }
+                if(iter == null){return false;}
 
-            private void swapIters(){
-                //only swap if the other one is fine
-                if(otherIter.hasNext()){
-                    Iterator<SequenceEdge> tempIter = mainIter;
-                    mainIter = otherIter;
-                    otherIter = tempIter;
+                if(iter.hasNext()){
+                    return true;
+                }
+
+                //try swapping to the out-edge iterator now
+                if(!swappedIters){
+                    iter = outEdges.iterator();
+                    swappedIters = true;
+                    return hasNext();
+                }
+                //we have swapped iterators, there is really no edges left
+                else{
+                    iter = null;
+                    return false;
                 }
             }
 
             @Override
             public SequenceEdge next() {
-
-                if(mainIter.hasNext()){
-                    SequenceEdge edge = mainIter.next();
-                    swapIters();
-                    return edge;
-                }
-                else if(otherIter.hasNext()){
-                    swapIters();
-                    return next();
-                }
-                throw new NoSuchElementException("No more edges left to iterate.");
+                iter.advance();
+                return iter.value();
             }
         };
     }

@@ -32,17 +32,6 @@ public class SequenceEdge {
         this.visitations.addVisitor(visitorId, new Range(startIdx, startIdx+1));
     }
 
-    /**
-     * @return The number of sequences that visited this edge.
-     */
-    public int getWeight() {
-        return visitations.getNumberOfVisitors();
-    }
-
-    public int getCover(){
-        return visitations.getTotalVisitedIndices();
-    }
-
     public Visitations getVisitors(){
         return this.visitations;
     }
@@ -75,10 +64,24 @@ public class SequenceEdge {
     public static void fuseEdges(SequenceEdge srcEdge, SequenceEdge destEdge){
 
         Visitations mergedVisitations = Visitations.tryConnectTouching(srcEdge.getVisitors(), destEdge.getVisitors());
-        if(mergedVisitations.getNumberOfVisitors() == 0){return;}
+        if(mergedVisitations.getSupport() == 0){return;}
 
         SequenceEdge newEdge = new SequenceEdge(srcEdge.source, destEdge.destination, mergedVisitations);
         srcEdge.source.addOutEdge(newEdge);
+    }
+
+    /**
+     * @return The number of sequences that visited this edge.
+     */
+    public int getSupport() {
+        return visitations.getSupport();
+    }
+
+    /**
+     * @return The number of times this edge was visited.
+     */
+    public int getCover(){
+        return visitations.getCover();
     }
 
 }

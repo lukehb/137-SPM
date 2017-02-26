@@ -1,11 +1,11 @@
 package onethreeseven.spm.algorithm;
 
-import gnu.trove.iterator.TIntObjectIterator;
+
 import onethreeseven.spm.model.*;
 import onethreeseven.collections.IntArray;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Simplifies sequence databases by analysing the sequence graph.
@@ -17,18 +17,19 @@ public class GraphSimplification {
      * Simplifies a sequence database using a lossless algorithm (not patterns are lost).
      * @param sequences The sequence database, note this will be modified internally.
      * @param minSup The absolute minimum support.
-     * @return The simplified sequence graphs of the sequence databases.
+     * @return The simplified sequence database
      */
-    public List<SequenceGraph> runLossless(final int[][] sequences, int minSup){
-        List<SequenceGraph> graphs = SequenceGraph.fromSequences(sequences);
+    public int[][] runLossless(final int[][] sequences, int minSup){
+        Collection<SequenceGraph> graphs = SequenceGraph.fromSequences(sequences);
         LookupSequence[] lookups = Arrays.stream(sequences).map(LookupSequence::new).toArray(LookupSequence[]::new);
         minSup = Math.max(1, minSup);
         doLossless(graphs, lookups, minSup);
         //get the "simplified" sequences
+        int[][] simplified = new int[sequences.length][];
         for (int i = 0; i < sequences.length; i++) {
-            sequences[i] = lookups[i].getActiveSequence();
+            simplified[i] = lookups[i].getActiveSequence();
         }
-        return graphs;
+        return simplified;
     }
 
     /**
@@ -36,16 +37,16 @@ public class GraphSimplification {
      * @param sequences The sequence database, note this will be modified internally.
      * @param simplificationFactor The simplification factor between 0 and 1.
      * @param minSup The absolute minimum support.
-     * @return The simplified sequence graphs of the sequence databases.
+     * @return The simplified sequence database.
      */
-    public List<SequenceGraph> runLossy(final int[][] sequences, double simplificationFactor, int minSup) {
+    public int[][] runLossy(final int[][] sequences, double simplificationFactor, int minSup) {
 
         simplificationFactor = Math.min(1, Math.max(simplificationFactor, 0));
         minSup = Math.max(1, minSup);
 
-        List<SequenceGraph> graphs = SequenceGraph.fromSequences(sequences);
+        Collection<SequenceGraph> graphs = SequenceGraph.fromSequences(sequences);
         if(simplificationFactor == 0){
-            return graphs;
+            return sequences;
         }
 
         int totalItems = 0;
@@ -62,12 +63,13 @@ public class GraphSimplification {
         doLossless(graphs, lookups, minSup);
         doLossy(graphs, lookups, simplificationFactor, totalItems);
 
+        int[][] simplified = new int[sequences.length][];
         //get the "simplified" sequences
         for (int i = 0; i < sequences.length; i++) {
-            sequences[i] = lookups[i].getActiveSequence();
+            simplified[i] = lookups[i].getActiveSequence();
         }
 
-        return graphs;
+        return simplified;
     }
 
     /**
@@ -94,7 +96,7 @@ public class GraphSimplification {
                     else{
                         v.union(sequenceEdge.getVisitors());
                     }
-                    if(v.getNumberOfVisitors() >= minSup){
+                    if(v.getSupport() >= minSup){
                         inFrequent = false;
                         break;
                     }
@@ -127,29 +129,50 @@ public class GraphSimplification {
     }
 
     private void simplify(SequenceGraph g, LookupSequence[] lookups){
-        //get the min node
-        double minCentrality = Integer.MAX_VALUE;
-        IntArray toRemove = new IntArray(4, false);
+        //get the min edges
+        double minScore = Integer.MAX_VALUE;
+        Collection<SequenceEdge> toRemove = new ArrayList<>();
 
-        TIntObjectIterator<SequenceNode> iter = g.nodes.iterator();
-        while(iter.hasNext()){
-            iter.advance();
-            SequenceNode node = iter.value();
+        for (SequenceEdge sequenceEdge : g) {
+            int indexCover = sequenceEdge.getVisitors().getCover();
 
-            double centrality = getCentrality(node);
-
-            if(Math.abs(centrality-minCentrality) < 1e-07){
-                toRemove.add(node.id);
+            if(indexCover == minScore){
+                toRemove.add(sequenceEdge);
             }
-            else if(centrality < minCentrality){
+            else if(indexCover < minScore){
                 toRemove.clear();
-                toRemove.add(node.id);
-                minCentrality = centrality;
+                toRemove.add(sequenceEdge);
+                minScore = indexCover;
             }
         }
 
-        //remove the "min" nodes
-        removeNodes(g, lookups, toRemove);
+        //remove the "min" edges
+        removeEdges(g, lookups, toRemove);
+    }
+
+    private void removeEdges(SequenceGraph g, LookupSequence[] lookups, Collection<SequenceEdge> edges){
+        //remove from lookup sequences
+        for (SequenceEdge edge : edges) {
+            for (LookupSequence lookup : lookups) {
+                int[] toClear = new int[]{edge.source.id, edge.destination.id};
+                while(true){
+                    if(!lookup.clear(toClear)){break;}
+                }
+            }
+        }
+        //remove from sequence graph
+        for (SequenceEdge edge : edges) {
+            edge.source.removeEdge(edge.destination, false);
+            edge.destination.removeEdge(edge.source, true);
+
+            //check for dangling node
+            if(edge.source.inEdges().size() + edge.source.outEdges().size() == 0){
+                g.remove(edge.source.id);
+            }
+            if(edge.destination.inEdges().size() + edge.destination.outEdges().size() == 0){
+                g.remove(edge.source.id);
+            }
+        }
     }
 
     private void removeNodes(SequenceGraph g, LookupSequence[] lookups, IntArray toRemove){
@@ -169,8 +192,5 @@ public class GraphSimplification {
         }
     }
 
-    private double getCentrality(SequenceNode node){
-        return node.getCover();
-    }
 
 }

@@ -3,7 +3,7 @@ package onethreeseven.spm.model;
 import onethreeseven.collections.Range;
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.List;
+import java.util.Collection;
 import java.util.Random;
 
 /**
@@ -57,8 +57,8 @@ public class SequenceGraphTest {
                 new int[]{65, 66, 65, 66, 65, 66, 65, 66}
         };
 
-        List<SequenceGraph> graphs = SequenceGraph.fromSequences(seqs);
-        SequenceGraph g = graphs.get(0);
+        Collection<SequenceGraph> graphs = SequenceGraph.fromSequences(seqs);
+        SequenceGraph g = graphs.iterator().next();
 
         SequenceNode node65 = g.nodes.get(65);
         SequenceEdge edge65to66 = node65.getOutEdge(66);
@@ -105,19 +105,20 @@ public class SequenceGraphTest {
      */
 
     private static final int[][] sequences = {
+            new int[]{3,7},
             new int[]{1,2,3},
             new int[]{1,4},
-            new int[]{1,3,7},
+            new int[]{1,3},
             new int[]{1,3},
             new int[]{1,3},
     };
 
     @Test
     public void testMakeWeightedDirectedGraph() throws Exception {
-        List<SequenceGraph> graphs = SequenceGraph.fromSequences(sequences);
+        Collection<SequenceGraph> graphs = SequenceGraph.fromSequences(sequences);
         //there is one graph
         Assert.assertTrue(graphs.size() == 1);
-        SequenceGraph graph = graphs.get(0);
+        SequenceGraph graph = graphs.iterator().next();
         //it has nodes 1,2,3,4,7
         Assert.assertTrue(graph.nodes.size() == 5);
         Assert.assertTrue(graph.nodes.containsKey(1));
@@ -126,10 +127,11 @@ public class SequenceGraphTest {
         Assert.assertTrue(graph.nodes.containsKey(4));
         Assert.assertTrue(graph.nodes.containsKey(7));
         //edges are weighted accordingly, 1-3[3], 1-2[1], 1-4[1], 3-7[1]
-        Assert.assertTrue(graph.nodes.get(1).getOutEdge(3).getWeight() == 3);
-        Assert.assertTrue(graph.nodes.get(1).getOutEdge(2).getWeight() == 1);
-        Assert.assertTrue(graph.nodes.get(1).getOutEdge(4).getWeight() == 1);
-        Assert.assertTrue(graph.nodes.get(3).getOutEdge(7).getWeight() == 1);
+        Assert.assertTrue(graph.nodes.get(1).getOutEdge(3).getSupport() == 3);
+        Assert.assertTrue(graph.nodes.get(2).getOutEdge(3).getSupport() == 1);
+        Assert.assertTrue(graph.nodes.get(1).getOutEdge(2).getSupport() == 1);
+        Assert.assertTrue(graph.nodes.get(1).getOutEdge(4).getSupport() == 1);
+        Assert.assertTrue(graph.nodes.get(3).getOutEdge(7).getSupport() == 1);
     }
 
 

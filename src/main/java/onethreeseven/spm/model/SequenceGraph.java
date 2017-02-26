@@ -1,9 +1,9 @@
 package onethreeseven.spm.model;
 
 import gnu.trove.iterator.TIntObjectIterator;
+import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import onethreeseven.collections.IntArray;
-import onethreeseven.spm.algorithm.DepthFirstSearch;
 import java.util.*;
 
 /**
@@ -15,7 +15,7 @@ public class SequenceGraph implements Iterable<SequenceEdge> {
 
     public final TIntObjectHashMap<SequenceNode> nodes = new TIntObjectHashMap<>();
 
-    public PrimitiveIterator.OfInt getIntIterator(){
+    public PrimitiveIterator.OfInt getNodeIdIter(){
         return new PrimitiveIterator.OfInt() {
             final TIntObjectIterator<SequenceNode> internalIter = nodes.iterator();
             @Override
@@ -36,146 +36,130 @@ public class SequenceGraph implements Iterable<SequenceEdge> {
      * @param sequences the sequences, one integer sequence per array
      * @return Sequence graphs
      */
-    public static List<SequenceGraph> fromSequences(int[][] sequences){
+    public static Collection<SequenceGraph> fromSequences(int[][] sequences){
         return constructGraphs(sequences);
     }
 
-    private static List<SequenceGraph> constructGraphs(int[][] sequences){
-        TIntObjectHashMap<SequenceNode> nodes = new TIntObjectHashMap<>();
+    private static Collection<SequenceGraph> constructGraphs(int[][] sequences){
+
+        //graph id
+        int gid = 0;
+        final int noEntryKey = -1;
+        final TIntObjectHashMap<SequenceGraph> graphs = new TIntObjectHashMap<>(10, 0.75f, noEntryKey);
+        final TIntIntHashMap nodeToGraphMap = new TIntIntHashMap(10, 0.75f, noEntryKey, noEntryKey);
+
         //populate the nodes and their neighbour relationships
         for (int seqIdx = 0; seqIdx < sequences.length; seqIdx++) {
             int[] sequence = sequences[seqIdx];
             if(sequence.length == 0){continue;}
+
+            TIntObjectHashMap<SequenceGraph> toMerge = new TIntObjectHashMap<>();
             SequenceNode prevNode = null;
+            int prevGraphId = noEntryKey;
 
             for (int i = 0; i < sequence.length; i++) {
                 int curId = sequence[i];
-                SequenceNode curNode = nodes.get(curId);
-                if (curNode == null) {
+                SequenceNode curNode;
+                SequenceGraph curGraph;
+                int curGraphId = nodeToGraphMap.get(curId);
+                //not contained in any graph, have to use prevEntryGraph
+                if(curGraphId == noEntryKey){
                     curNode = new SequenceNode(curId);
-                    nodes.put(curId, curNode);
+                    //no previous graph, have to make one
+                    if(prevGraphId == noEntryKey){
+                        curGraph = new SequenceGraph();
+                        curGraph.nodes.put(curId, curNode);
+                        curGraphId = gid;
+                        gid++;
+                        graphs.put(curGraphId, curGraph);
+                    }
+                    //there is a previous graph
+                    else{
+                        curGraphId = prevGraphId;
+                        curGraph = graphs.get(curGraphId);
+                        prevNode.addEdgeTo(curNode, seqIdx, i-1);
+                        curGraph.nodes.put(curId, curNode);
+                    }
                 }
-                if (prevNode != null) {
-                    prevNode.addEdgeTo(curNode, seqIdx, i-1);
+                //this node does appear in some graph already
+                else{
+                    curGraph = graphs.get(curGraphId);
+                    curNode = curGraph.nodes.get(curId);
+                    if (prevNode != null) {
+                        prevNode.addEdgeTo(curNode, seqIdx, i-1);
+                    }
                 }
+                nodeToGraphMap.put(curId, curGraphId);
+                toMerge.put(curGraphId, curGraph);
                 prevNode = curNode;
+                prevGraphId = curGraphId;
+            }
+
+            //merge the "toMerge" map
+            if(toMerge.size() > 1){
+                mergeGraphs(toMerge, nodeToGraphMap, graphs);
             }
         }
-
-        //sort the sequence nodes in descending order by who has the highest number of neighbours
-        //this should allow us to get good starting candidates for constructing graphs using depth
-        //first searching
-        BitSet processedIds = new BitSet();
-        List<SequenceNode> sortedNodes = new ArrayList<>(nodes.valueCollection());
-        Collections.sort(sortedNodes, (o1, o2) -> o2.degree() - o1.degree());
-        nodes.clear();
-
-        Iterator<SequenceNode> iter = sortedNodes.iterator();
-
-        //do a depth-first search and construct the graph(s)
-        ArrayList<SequenceGraph> graphs = new ArrayList<>();
-        while(iter.hasNext()){
-            SequenceNode startNode = iter.next();
-            if(!processedIds.get(startNode.id)){
-                dfsConstructGraph(startNode, processedIds, graphs);
-            }
-            iter.remove();
-        }
-
-        return graphs;
+        return graphs.valueCollection();
     }
 
-    private static void dfsConstructGraph(SequenceNode startNode, BitSet processedIds, ArrayList<SequenceGraph> graphs){
-        SequenceGraph graph = new SequenceGraph();
+    private static void mergeGraphs(TIntObjectHashMap<SequenceGraph> toMerge, TIntIntHashMap nodeToGraphMap, TIntObjectHashMap<SequenceGraph> graphs){
+        TIntObjectIterator<SequenceGraph> iter = toMerge.iterator();
+        iter.advance();
 
-        final SequenceNode[] sharedNode = new SequenceNode[]{null};
+        //merge all graphs into this one
+        SequenceGraph mergeInto = iter.value();
+        int mergedGraphId = iter.key();
 
-        new DepthFirstSearch(){
-            @Override
-            protected void processNode(SequenceNode node) {
-                if(!processedIds.get(node.id)){
-                    graph.nodes.put(node.id, node);
-                    processedIds.set(node.id);
-                }
-                else{
-                    //has a neighbour in some other sequence graph, merge the two graphs together
-                    sharedNode[0] = node;
-                }
+        while(iter.hasNext()){
+            //merge the actual nodes into the new graph
+            iter.advance();
+            SequenceGraph curGraph = iter.value();
+            mergeInto.nodes.putAll(curGraph.nodes);
+            //change all the nodeToGraph mappings
+            TIntObjectIterator<SequenceNode> nodeIter = curGraph.nodes.iterator();
+            while(nodeIter.hasNext()){
+                nodeIter.advance();
+                nodeToGraphMap.put(nodeIter.key(), mergedGraphId);
             }
-
-            @Override
-            protected boolean keepSearching(SequenceNode node) {
-                return true;
-            }
-        }.search(startNode);
-
-        //there is shared node in the new graph that is already in one of the other graphs
-        //this means the two graphs should merge together
-        if(sharedNode[0] != null){
-            for (SequenceGraph otherGraph : graphs) {
-                if(otherGraph.nodes.containsKey(sharedNode[0].id)){
-                    otherGraph.nodes.putAll(graph.nodes);
-                }
-            }
-        }
-        //no shared node, just add the graph
-        else{
-            graphs.add(graph);
+            graphs.remove(iter.key());
         }
     }
 
     @Override
     public Iterator<SequenceEdge> iterator() {
-
-        final BitSet processedEdges = new BitSet();
-        final Iterator<SequenceNode> nodeIter = nodes.valueCollection().iterator();
-
         return new Iterator<SequenceEdge>() {
-            SequenceEdge cachedNext = null;
-            Iterator<SequenceEdge> localEdgeIter = nodeIter.next().iterator();
 
-            private SequenceEdge getNext(){
-                while(localEdgeIter.hasNext()){
-                    SequenceEdge edge = localEdgeIter.next();
-                    if(!processedEdges.get(edge.id)){
-                        processedEdges.set(edge.id);
-                        return edge;
-                    }
-                }
-                if(nodeIter.hasNext()){
-                    localEdgeIter = nodeIter.next().iterator();
-                    return getNext();
-                }
-                return null;
-            }
+            final TIntObjectIterator<SequenceNode> iter = nodes.iterator();
+            final Stack<SequenceEdge> buffer = new Stack<>();
 
             @Override
             public boolean hasNext() {
-                if(cachedNext == null){
-                    cachedNext = getNext();
-                    return cachedNext != null;
-                }
-                else{
+                boolean isMoreNodes = iter.hasNext();
+                boolean bufferEmpty = buffer.isEmpty();
+
+                if(!bufferEmpty){
                     return true;
+                }
+
+                if(isMoreNodes) {
+                    iter.advance();
+                    SequenceNode cur = iter.value();
+                    buffer.addAll(cur.outEdges());
+
+                    return !buffer.isEmpty() || hasNext();
+                }
+                else {
+                    return false;
                 }
             }
 
             @Override
             public SequenceEdge next() {
-                if(cachedNext == null){
-                    SequenceEdge next = getNext();
-                    if(next == null){
-                        throw new NoSuchElementException("No more edges left to iterate.");
-                    }
-                    return next;
-                }
-                else{
-                    SequenceEdge res = cachedNext;
-                    cachedNext = null;
-                    return res;
-                }
+                return buffer.pop();
             }
         };
+
     }
 
     /**
