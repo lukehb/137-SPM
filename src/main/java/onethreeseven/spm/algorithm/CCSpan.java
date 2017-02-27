@@ -22,6 +22,7 @@ public class CCSpan {
      * Run CCSpan and write patterns to a file.
      * @param sequences The sequence database
      * @param minSupRelative The relative support 0...1
+     * @param outputSubPatterns Set to true to get all contiguous patterns (not just closed).
      * @param outputFile The file to write to.
      */
     public void run(int[][] sequences, float minSupRelative, boolean outputSubPatterns, File outputFile){

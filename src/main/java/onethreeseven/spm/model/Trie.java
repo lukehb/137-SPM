@@ -116,7 +116,7 @@ public class Trie<T> {
 
     /**
      * Checks whether this sequence exists, whether it meets a minimum count support,
-     * and if it does then un-mark its parent. However, if it exists but doesn't meet the support
+     * and if it does then un-mark its pre/post. However, if it exists but doesn't meet the support
      * remove it.
      * @param sequence The candidate sequence.
      * @param minSup The minimum required support count.
@@ -143,13 +143,39 @@ public class Trie<T> {
             }
             //met the requirement, check to un-mark parent
             else{
+                //unmark pre-sequence if necessary
                 if(isMarked(parent)){
                     //same count means we can un-mark parent
                     if((parent.count == endNode.count)){
                         unmark(parent);
                     }
+                }
+                //unmark post-sequence if necessary
+                {
+                    TrieNode curNode = rootNode;
+                    for (int i = 1; i < sequence.length; i++) {
+                        T curVal = sequence[i];
+                        boolean foundMatch = false;
+                        for (TrieNode child : curNode.children) {
+                            if(child.value.equals(curVal)){
+                                curNode = child;
+                                foundMatch = true;
+                                break;
+                            }
+                        }
+                        if(!foundMatch){
+                            break;
+                        }
+                        else if(i == sequence.length - 1 && curNode.getCount() == endNode.getCount()){
+                            if(isMarked(curNode)){
+                                unmark(curNode);
+                            }
+                        }
+                    }
                     mark(endNode);
                 }
+
+
                 return true;
             }
         }

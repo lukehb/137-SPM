@@ -5,6 +5,7 @@ import onethreeseven.spm.model.TrieIterator;
 import org.junit.Assert;
 import org.junit.Test;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Test for {@link CCSpan}
@@ -37,7 +38,7 @@ public class CCSpanTest {
         Assert.assertTrue(t.getFrequencyOf(new Integer[]{1,2,3}) == 3);
 
         List<Map.Entry<List<Integer>, Boolean>> expected = new ArrayList<>();
-        expected.add(new AbstractMap.SimpleEntry<>(Collections.singletonList(3), true)); //errata in paper, this is closed
+        expected.add(new AbstractMap.SimpleEntry<>(Collections.singletonList(3), false));
         expected.add(new AbstractMap.SimpleEntry<>(Collections.singletonList(1), false));
         expected.add(new AbstractMap.SimpleEntry<>(Collections.singletonList(2), false));
         expected.add(new AbstractMap.SimpleEntry<>(Arrays.asList(3,1), true));
@@ -48,7 +49,8 @@ public class CCSpanTest {
         TrieIterator<Integer> patternIter = t.getPatternIterator(true);
         while(patternIter.hasNext()){
             List<Integer> pattern = patternIter.next();
-            System.out.println((patternIter.isMarked() ? "|closed" : "|opened")
+            System.out.println(
+                    (patternIter.isMarked() ? " |closed" : "|non-closed")
                     + "|sup:" + patternIter.getCount()
                     + "| " +  Arrays.toString(pattern.toArray()));
 

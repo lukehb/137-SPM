@@ -63,7 +63,9 @@ public class CoveredSequence {
 
         Iterator<SequenceEdge> iter = sequence.iterator();
         if(iter.hasNext()){
-            sb.append(iter.next().source.id).append(" ");
+            SequenceEdge curEdge = iter.next();
+            sb.append(curEdge.source.id).append(" ");
+            sb.append(curEdge.destination.id).append(" ");
         }
         while(iter.hasNext()){
             sb.append(iter.next().destination.id).append(" ");
