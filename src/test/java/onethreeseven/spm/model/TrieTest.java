@@ -52,7 +52,9 @@ public class TrieTest {
     }
 
     @Test
-    public void testSupersede() throws Exception {
+    public void testClosedPatternClosure() throws Exception {
+        final IPatternClosure closed = (supA, supB) -> supA == supB;
+
         Trie<Character> t = new Trie<>();
 
         //add some length 1 sequences
@@ -66,13 +68,13 @@ public class TrieTest {
         t.add(new Character[]{'A', 'C'});
         t.add(new Character[]{'A', 'D'});
         //check which sequences should correctly supersede
-        Assert.assertTrue(t.supersede(new Character[]{'A', 'B'}, 2));
+        Assert.assertTrue(t.supersede(new Character[]{'A', 'B'}, 2, closed));
         Assert.assertTrue(t.getFrequencyOf(new Character[]{'A', 'B'}) == 2);
 
-        Assert.assertFalse(t.supersede(new Character[]{'A', 'C'}, 2));
+        Assert.assertFalse(t.supersede(new Character[]{'A', 'C'}, 2, closed));
         Assert.assertTrue(t.getFrequencyOf(new Character[]{'A', 'C'}) == 0);
 
-        Assert.assertFalse(t.supersede(new Character[]{'A', 'D'}, 2));
+        Assert.assertFalse(t.supersede(new Character[]{'A', 'D'}, 2, closed));
         Assert.assertTrue(t.getFrequencyOf(new Character[]{'A', 'D'}) == 0);
 
         //check that removing the A,C and A,D updated the count of singleton A

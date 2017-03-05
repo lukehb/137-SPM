@@ -81,7 +81,7 @@ public class ProtoMiner {
                 }
             };
 
-            //run the actual algorithm
+            //populateTrie the actual algorithm
             run(g, seqDb, minSup, minLen, writeToFileProcessor);
 
             bw.close();

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * The command to run {@link GraspMiner}
+ * The command to populateTrie {@link GraspMiner}
  * @author Luke Bermingham
  */
 @Parameters(commandNames = "graspminer", commandDescription = "Runs GraspMiner algorithm.")

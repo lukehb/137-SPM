@@ -59,7 +59,7 @@ public class GraphSimplification {
             lookups[i] = new LookupSequence(sequence);
         }
 
-        //run the actual simplification
+        //populateTrie the actual simplification
         doLossless(graphs, lookups, minSup);
         doLossy(graphs, lookups, simplificationFactor, totalItems);
 

@@ -120,9 +120,10 @@ public class Trie<T> {
      * remove it.
      * @param sequence The candidate sequence.
      * @param minSup The minimum required support count.
+     * @param patternClosure The rule used to discard patterns.
      * @return True if it exists with minimum support.
      */
-    public boolean supersede(T[] sequence, int minSup){
+    public boolean supersede(T[] sequence, int minSup, IPatternClosure patternClosure){
         ArrayList<TrieNode> path = new ArrayList<>(sequence.length);
         Iterator<TrieNode> iter = getSequenceIter(sequence);
 
@@ -146,7 +147,7 @@ public class Trie<T> {
                 //unmark pre-sequence if necessary
                 if(isMarked(parent)){
                     //same count means we can un-mark parent
-                    if((parent.count == endNode.count)){
+                    if(patternClosure.discard(parent.count, endNode.count)){
                         unmark(parent);
                     }
                 }
@@ -166,7 +167,7 @@ public class Trie<T> {
                         if(!foundMatch){
                             break;
                         }
-                        else if(i == sequence.length - 1 && curNode.getCount() == endNode.getCount()){
+                        else if(i == sequence.length - 1 && patternClosure.discard(curNode.getCount(), endNode.getCount())){
                             if(isMarked(curNode)){
                                 unmark(curNode);
                             }

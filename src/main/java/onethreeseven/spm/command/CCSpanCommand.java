@@ -12,7 +12,7 @@ import onethreeseven.common.util.FileUtil;
 import java.io.File;
 
 /**
- * Command to run the CC-Span algorithm.
+ * Command to populateTrie the CC-Span algorithm.
  * @author Luke Bermingham
  */
 @Parameters(commandNames = "ccspan", commandDescription = "CC-Span algorithm.")
@@ -63,12 +63,12 @@ public class CCSpanCommand extends AbstractCommand {
         float relSup = minSup/(float)sdb.length;
 
         if(writingOutput){
-            algo.run(sdb, relSup, false, out);
+            algo.run(sdb, relSup, out);
             endTime = System.currentTimeMillis();
             System.out.println("GraspMiner pattern output at: " + out.getAbsolutePath());
         }
         else{
-            Trie<Integer> t = algo.run(sdb, relSup);
+            Trie<Integer> t = algo.populateTrie(sdb, relSup);
             endTime = System.currentTimeMillis();
             TrieIterator<Integer> iter = t.getPatternIterator(false);
             int nPatterns = 0;
