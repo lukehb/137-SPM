@@ -12,7 +12,7 @@ buildscript {
 apply plugin: 'com.jfrog.bintray'
 
 group 'onethreeseven'
-version '0.0.3'
+version '0.0.4'
 
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -32,8 +32,9 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    maven{url 'https://dl.bintray.com/lukehb/137-collections'} //some custom collections we use
-    maven{url 'https://dl.bintray.com/lukehb/137-common'} //some custom utilities we use
+    maven { url 'https://dl.bintray.com/lukehb/137-collections' } //some custom collections we use
+    maven { url 'https://dl.bintray.com/lukehb/137-common' } //some custom utilities we use
+    maven { url 'https://github.com/lukehb/137-jars/raw/master/repository' } //spmf
 }
 
 dependencies {
@@ -42,6 +43,7 @@ dependencies {
     compile group: 'onethreeseven', name: 'common', version: '0.0.1'
     compile group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
     compile group: 'com.beust', name: 'jcommander', version: '1.48'
+    compile group: 'ca.pfv.spmf', name: 'spmf', version: '2.1.2'
 }
 
 jar {

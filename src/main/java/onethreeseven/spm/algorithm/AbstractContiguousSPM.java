@@ -19,7 +19,7 @@ import java.util.List;
  *
  * @author Luke Bermingham
  */
-public abstract class AbstractContigousSPM {
+public abstract class AbstractContiguousSPM {
 
     private static final String SUPPORT_PREFIX = "#SUP:";
 
@@ -30,16 +30,15 @@ public abstract class AbstractContigousSPM {
     /**
      * In the paper this section is referred to as Algorithm 1.
      * @param db the sequences to process.
-     * @param support the support of a contiguous sequential pattern.
+     * @param minSupAbs the absolute minimum support of a contiguous sequential pattern.
      */
-    private Trie<Integer> runImpl(int[][] db, float support){
-        final int minSup = Math.round(db.length * support);
+    private Trie<Integer> runImpl(int[][] db, int minSupAbs){
         final Trie<Integer> f = new Trie<>();
         final IPatternClosure patternClosure = getPatternClosure();
 
         int k = 1;
         //This loop is lines 1-10 in paper - keep generating closed patterns until you can't
-        while(addLengthKPatterns(f, k, minSup, db, patternClosure) > 0){
+        while(addLengthKPatterns(f, k, minSupAbs, db, patternClosure) > 0){
             k++;
         }
         return f;
@@ -107,39 +106,35 @@ public abstract class AbstractContigousSPM {
     //////////////////
 
     protected abstract IPatternClosure getPatternClosure();
-    protected abstract boolean addToOutput(ArrayList<Integer> pattern, int support, boolean marked);
+    protected abstract boolean addToOutput(ArrayList<Integer> pattern, TrieIterator<Integer> patternIter);
     protected abstract String getPatternClosureSuffix();
 
     //////////////////
     //PUBLIC METHODS
     //////////////////
 
-    public Trie<Integer> populateTrie(int[][] sequences, float minSupRelative){
+    public Trie<Integer> populateTrie(int[][] sequences, int minSupAbs){
         if(sequences.length == 0){
             throw new IllegalArgumentException(
                     "Cannot mine patterns from empty sequence database.");
         }
-        if(minSupRelative < 0 || minSupRelative > 1){
-            throw new IllegalArgumentException("Support must be in the range [0,1]");
-        }
-        return runImpl(sequences, minSupRelative);
+        return runImpl(sequences, minSupAbs);
     }
 
     /**
      * Run CCSpan and write a list.
      * @param sequences The sequence database
-     * @param minSupRelative The relative support 0...1
+     * @param minSupAbs The minimum absolute support.
      */
-    public List<SequentialPattern> run(int[][] sequences, float minSupRelative){
-        final Trie<Integer> patterns = populateTrie(sequences, minSupRelative);
+    public List<SequentialPattern> run(int[][] sequences, int minSupAbs){
+        final Trie<Integer> patterns = populateTrie(sequences, minSupAbs);
         final TrieIterator<Integer> iter = patterns.getPatternIterator(true);
         final List<SequentialPattern> output = new ArrayList<>(sequences.length);
 
         while(iter.hasNext()){
             ArrayList<Integer> pattern = iter.next();
             int support = iter.getCount();
-            boolean isMarked = iter.isMarked();
-            if(!addToOutput(pattern, support, isMarked)){
+            if(!addToOutput(pattern, iter)){
                 continue;
             }
             output.add(new SequentialPattern(pattern, support));
@@ -150,11 +145,11 @@ public abstract class AbstractContigousSPM {
     /**
      * Run CCSpan and write patterns to a file.
      * @param sequences The sequence database
-     * @param minSupRelative The relative support 0...1
+     * @param minSupAbs The absolute minimum support.
      * @param outputFile The file to write to.
      */
-    public void run(int[][] sequences, float minSupRelative, File outputFile){
-        final Trie<Integer> patterns = populateTrie(sequences, minSupRelative);
+    public void run(int[][] sequences, int minSupAbs, File outputFile){
+        final Trie<Integer> patterns = populateTrie(sequences, minSupAbs);
         final TrieIterator<Integer> iter = patterns.getPatternIterator(true);
         final String suffix = getPatternClosureSuffix();
 
@@ -164,8 +159,7 @@ public abstract class AbstractContigousSPM {
             while(iter.hasNext()){
                 ArrayList<Integer> pattern = iter.next();
                 int support = iter.getCount();
-                boolean isMarked = iter.isMarked();
-                if(!addToOutput(pattern, support, isMarked)){
+                if(!addToOutput(pattern, iter)){
                     continue;
                 }
                 for (Integer symbol : pattern) {
@@ -181,5 +175,4 @@ public abstract class AbstractContigousSPM {
             e.printStackTrace();
         }
     }
-
 }

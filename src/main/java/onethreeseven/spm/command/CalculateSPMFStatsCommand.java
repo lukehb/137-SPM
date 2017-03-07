@@ -4,7 +4,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
 import onethreeseven.spm.data.SPMFParser;
-import onethreeseven.spm.data.SequenceDbStatsCalculator;
+import onethreeseven.spm.algorithm.SequenceDbStatsCalculator;
 import onethreeseven.common.util.FileUtil;
 
 import java.io.File;

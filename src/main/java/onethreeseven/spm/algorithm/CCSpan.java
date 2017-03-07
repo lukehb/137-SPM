@@ -3,11 +3,7 @@ package onethreeseven.spm.algorithm;
 import onethreeseven.spm.model.IPatternClosure;
 import onethreeseven.spm.model.Trie;
 import onethreeseven.spm.model.TrieIterator;
-import onethreeseven.spm.model.ContiguousSubSeqIterator;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+
 import java.util.ArrayList;
 
 /**
@@ -17,7 +13,7 @@ import java.util.ArrayList;
  * to speed up the pattern searching.
  * @author Luke Bermingham
  */
-public class CCSpan extends AbstractContigousSPM{
+public class CCSpan extends AbstractContiguousSPM {
 
     @Override
     protected IPatternClosure getPatternClosure() {
@@ -25,8 +21,16 @@ public class CCSpan extends AbstractContigousSPM{
     }
 
     @Override
-    protected boolean addToOutput(ArrayList<Integer> pattern, int support, boolean marked) {
-        return marked;
+    protected boolean addToOutput(ArrayList<Integer> pattern, TrieIterator<Integer> patternIter) {
+        //if the pattern is not marked we don't want to write it
+        if(!patternIter.isMarked()){
+            return false;
+        }
+        else{
+            //un-mark the current pattern so we don't process it again
+            patternIter.unMark();
+            return true;
+        }
     }
 
     @Override

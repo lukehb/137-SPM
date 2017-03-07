@@ -3,6 +3,7 @@ package onethreeseven.spm.algorithm;
 import onethreeseven.spm.model.IPatternClosure;
 import onethreeseven.spm.model.SequentialPattern;
 import onethreeseven.spm.model.Trie;
+import onethreeseven.spm.model.TrieIterator;
 import org.junit.Assert;
 import org.junit.Test;
 import java.util.*;
@@ -24,14 +25,14 @@ public class ContiguousPatternMiningTest {
 
     @Test
     public void testTrie(){
-        AbstractContigousSPM algo = new AbstractContigousSPM() {
+        AbstractContiguousSPM algo = new AbstractContiguousSPM() {
             @Override
             protected IPatternClosure getPatternClosure() {
                 return (supA, supB) -> true;
             }
 
             @Override
-            protected boolean addToOutput(ArrayList<Integer> pattern, int support, boolean marked) {
+            protected boolean addToOutput(ArrayList<Integer> pattern, TrieIterator<Integer> patternIter) {
                 return false;
             }
 
@@ -41,7 +42,7 @@ public class ContiguousPatternMiningTest {
             }
         };
 
-        Trie<Integer> t = algo.populateTrie(db, 0.5f);
+        Trie<Integer> t = algo.populateTrie(db, 2);
 
         Assert.assertTrue(t.getFrequencyOf(new Integer[]{3}) == 4);
         Assert.assertTrue(t.getFrequencyOf(new Integer[]{1}) == 4);
@@ -57,7 +58,7 @@ public class ContiguousPatternMiningTest {
         System.out.println("Closed patterns");
 
         final CCSpan algo = new CCSpan();
-        final List<SequentialPattern> actualPatterns = algo.run(db, 0.5f);
+        final List<SequentialPattern> actualPatterns = algo.run(db, 2);
         final List<SequentialPattern> expectedPatterns = new ArrayList<>();
 
         expectedPatterns.add(new SequentialPattern(new int[]{3,1}, 3));
@@ -65,7 +66,7 @@ public class ContiguousPatternMiningTest {
         expectedPatterns.add(new SequentialPattern(new int[]{2,3}, 4));
         expectedPatterns.add(new SequentialPattern(new int[]{1,2,3}, 3));
 
-        List<SequentialPattern> actual = algo.run(db, 0.5f);
+        List<SequentialPattern> actual = algo.run(db, 2);
 
         for (SequentialPattern actualPattern : actual) {
             System.out.println(actualPattern.toString());
@@ -83,13 +84,13 @@ public class ContiguousPatternMiningTest {
         System.out.println("Max patterns");
 
         final MCSpan algo = new MCSpan();
-        final List<SequentialPattern> actualPatterns = algo.run(db, 0.5f);
+        final List<SequentialPattern> actualPatterns = algo.run(db, 2);
         final List<SequentialPattern> expectedPatterns = new ArrayList<>();
 
         expectedPatterns.add(new SequentialPattern(new int[]{3,1}, 3));
         expectedPatterns.add(new SequentialPattern(new int[]{1,2,3}, 3));
 
-        List<SequentialPattern> actual = algo.run(db, 0.5f);
+        List<SequentialPattern> actual = algo.run(db, 2);
 
         for (SequentialPattern actualPattern : actual) {
             System.out.println(actualPattern.toString());
@@ -107,7 +108,7 @@ public class ContiguousPatternMiningTest {
         System.out.println("All patterns");
 
         final ACSpan algo = new ACSpan();
-        final List<SequentialPattern> actualPatterns = algo.run(db, 0.5f);
+        final List<SequentialPattern> actualPatterns = algo.run(db, 2);
         final List<SequentialPattern> expectedPatterns = new ArrayList<>();
 
         expectedPatterns.add(new SequentialPattern(new int[]{3}, 4));
@@ -118,7 +119,7 @@ public class ContiguousPatternMiningTest {
         expectedPatterns.add(new SequentialPattern(new int[]{2,3}, 4));
         expectedPatterns.add(new SequentialPattern(new int[]{1,2,3}, 3));
 
-        List<SequentialPattern> actual = algo.run(db, 0.5f);
+        List<SequentialPattern> actual = algo.run(db, 2);
 
         for (SequentialPattern actualPattern : actual) {
             System.out.println(actualPattern.toString());

@@ -144,16 +144,17 @@ public class Trie<T> {
             }
             //met the requirement, check to un-mark parent
             else{
-                //unmark pre-sequence if necessary
+                //unMark pre-sequence if necessary
                 if(isMarked(parent)){
                     //same count means we can un-mark parent
                     if(patternClosure.discard(parent.count, endNode.count)){
-                        unmark(parent);
+                        unMark(parent);
                     }
                 }
-                //unmark post-sequence if necessary
+                //unMark post-sequence if necessary
                 {
                     TrieNode curNode = rootNode;
+                    //note starting i = 1, goes down a different branch
                     for (int i = 1; i < sequence.length; i++) {
                         T curVal = sequence[i];
                         boolean foundMatch = false;
@@ -169,7 +170,7 @@ public class Trie<T> {
                         }
                         else if(i == sequence.length - 1 && patternClosure.discard(curNode.getCount(), endNode.getCount())){
                             if(isMarked(curNode)){
-                                unmark(curNode);
+                                unMark(curNode);
                             }
                         }
                     }
@@ -320,15 +321,15 @@ public class Trie<T> {
         };
     }
 
-    private void unmark(TrieNode node){
+    void unMark(TrieNode node){
         this.markedNodes.clear(node.id);
     }
 
-    private void lock(TrieNode node){
+    void lock(TrieNode node){
         this.lockedNodes.set(node.id);
     }
 
-    private void mark(TrieNode node){
+    void mark(TrieNode node){
         this.markedNodes.set(node.id);
     }
 

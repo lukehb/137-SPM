@@ -79,7 +79,7 @@ public class SPMFParser {
 
         for (String part : lineParts) {
             part = part.trim();
-            if(part.equals("-1") || part.equals("-2")){continue;}
+            if(part.equals("-1") || part.equals("-2") || part.isEmpty()){continue;}
             if(part.startsWith("#")){break;}
             arr.add(Integer.parseInt(part));
         }

@@ -63,4 +63,10 @@ public class TrieIterator<T> implements Iterator<ArrayList<T>> {
         return endNode != null && t.isMarked(endNode);
     }
 
+    public void unMark(){
+        if(endNode != null){
+            t.unMark(endNode);
+        }
+    }
+
 }

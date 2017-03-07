@@ -60,15 +60,14 @@ public class CCSpanCommand extends AbstractCommand {
         long startTime = System.currentTimeMillis();
         long endTime;
         CCSpan algo = new CCSpan();
-        float relSup = minSup/(float)sdb.length;
 
         if(writingOutput){
-            algo.run(sdb, relSup, out);
+            algo.run(sdb, minSup, out);
             endTime = System.currentTimeMillis();
             System.out.println("GraspMiner pattern output at: " + out.getAbsolutePath());
         }
         else{
-            Trie<Integer> t = algo.populateTrie(sdb, relSup);
+            Trie<Integer> t = algo.populateTrie(sdb, minSup);
             endTime = System.currentTimeMillis();
             TrieIterator<Integer> iter = t.getPatternIterator(false);
             int nPatterns = 0;
