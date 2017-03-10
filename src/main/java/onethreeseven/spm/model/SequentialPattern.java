@@ -9,8 +9,11 @@ import java.util.stream.Collectors;
  * @author Luke Bermingham
  */
 public class SequentialPattern {
-    private final int support;
-    private final int[] sequence;
+
+    private static final String supportSuffix = " #SUP:";
+
+    final int support;
+    final int[] sequence;
 
     public SequentialPattern(int[] sequence, int support) {
         this.support = support;
@@ -26,9 +29,28 @@ public class SequentialPattern {
         return Arrays.stream(sequence).boxed().collect(Collectors.toList());
     }
 
+    public int getSupport() {
+        return support;
+    }
+
+    public int[] getSequence() {
+        return sequence;
+    }
+
+    public int size(){
+        return sequence.length;
+    }
+
     @Override
     public String toString() {
-        return Arrays.toString(sequence) + " #SUP:" + support;
+        StringBuilder sb = new StringBuilder();
+        for (int item : sequence) {
+            sb.append(String.valueOf(item));
+            sb.append(" ");
+        }
+        sb.append(supportSuffix);
+        sb.append(support);
+        return sb.toString();
     }
 
     @Override

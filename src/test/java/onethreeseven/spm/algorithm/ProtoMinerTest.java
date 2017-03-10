@@ -64,7 +64,7 @@ public class ProtoMinerTest {
 
         final int minSup = 2;
         final int minLen = -1;
-        Collection<CandidatePattern> patterns = new ProtoMiner().run(g, seqDb, minSup, minLen);
+        Collection<CandidatePattern> patterns = new ProtoMiner().run(seqDb, minSup, minLen);
         System.out.println("Done mining patterns.");
 
         for (CandidatePattern pattern : patterns) {

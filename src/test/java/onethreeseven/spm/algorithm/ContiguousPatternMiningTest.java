@@ -35,11 +35,6 @@ public class ContiguousPatternMiningTest {
             protected boolean addToOutput(ArrayList<Integer> pattern, TrieIterator<Integer> patternIter) {
                 return false;
             }
-
-            @Override
-            protected String getPatternClosureSuffix() {
-                return null;
-            }
         };
 
         Trie<Integer> t = algo.populateTrie(db, 2);

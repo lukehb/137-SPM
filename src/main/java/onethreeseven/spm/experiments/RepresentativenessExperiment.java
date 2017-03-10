@@ -12,10 +12,12 @@ import java.io.File;
 public class RepresentativenessExperiment {
 
     private static final File subsetSPMFFile =
-            new File(FileUtil.makeAppDir("contig_patterns"), "tdrive_distinct_minsup_20_set_0.txt");
+            new File(FileUtil.makeAppDir("contig_patterns/synthetic_1000000"),
+                    "synthetic_1000000_MAX_minsup_10.txt");
 
     private static final File supersetSPMFFile =
-            new File(FileUtil.makeAppDir("contig_patterns"), "tdrive_all_minsup_20_set_0.txt");
+            new File(FileUtil.makeAppDir("contig_patterns/synthetic_1000000"),
+                    "synthetic_1000000_ALL_minsup_10.txt");
 
 
     public static void main(String[] args) {

@@ -3,8 +3,6 @@ package onethreeseven.spm.data;
 
 import onethreeseven.common.data.AbstractWriter;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 /**
@@ -18,40 +16,8 @@ import java.io.IOException;
  */
 public class SPMFWriter extends AbstractWriter<int[][]> {
 
-    private BufferedWriter bw = null;
-
     public SPMFWriter() {
         setDelimiter(" "); //spmf uses space as delimiter it seems
-    }
-
-    public SPMFWriter(File file){
-        setDelimiter(" ");
-        try {
-            if(file.createNewFile() && file.canWrite()) {
-                bw = new BufferedWriter(new FileWriter(file));
-            } else {
-                this.logger.warning("A file already exists there, delete this first: " + file.getAbsolutePath());
-            }
-        } catch (IOException var13) {
-            this.logger.severe("Could not create writer: " + var13.getMessage());
-        }
-    }
-
-    public void write(int[] sequence){
-        if(this.bw == null){
-            throw new IllegalStateException("To use this method you must use the constructor that takes a file.");
-        }
-        write(this.bw, sequence);
-    }
-
-    public void close(){
-        if(this.bw != null){
-            try {
-                this.bw.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     protected void write(BufferedWriter bw, int[] sequence){
@@ -71,9 +37,10 @@ public class SPMFWriter extends AbstractWriter<int[][]> {
     }
 
     @Override
-    protected void write(BufferedWriter bw, int[][] sequences) throws IOException {
+    protected boolean write(BufferedWriter bw, int[][] sequences) throws IOException {
         for (int[] sequence : sequences) {
             write(bw, sequence);
         }
+        return true;
     }
 }

@@ -6,49 +6,19 @@ import java.util.*;
  * A contiguous integer sequence with some metrics (i.e support, cover).
  * @author Luke Bermingham
  */
-public class RepSeq {
+public class RepSeq extends SequentialPattern{
 
-    private final static String fmt = "%s #COVER:%d #SUP:%d";
-
-    private final int[] sequence;
+    private final static String coverSuffix = " #COVER:";
     private final int cover;
-    private final int sup;
-    private Visitations visitations;
 
-    public RepSeq(int cover, int sup, Visitations visitations, int... sequence) {
-        this.sequence = sequence;
+    public RepSeq(int cover, int sup, int... sequence) {
+        super(sequence, sup);
         this.cover = cover;
-        this.sup = sup;
-        this.visitations = visitations;
-    }
-
-    public Visitations getVisitations() {
-        return visitations;
-    }
-
-    private String stringifySequence(){
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < sequence.length; i++) {
-            int symbol = sequence[i];
-            sb.append(String.valueOf(symbol));
-            if (i < sequence.length - 1) {
-                sb.append(" ");
-            }
-        }
-        return sb.toString();
-    }
-
-    public int getCover() {
-        return cover;
-    }
-
-    public int size(){
-        return sequence.length;
     }
 
     @Override
     public String toString() {
-        return String.format(fmt, stringifySequence(), cover, sup);
+        return super.toString() + coverSuffix + cover;
     }
 
     public PrimitiveIterator.OfInt intIter() {

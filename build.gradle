@@ -40,7 +40,7 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     compile group: 'onethreeseven', name: 'collections', version: '0.0.1'
-    compile group: 'onethreeseven', name: 'common', version: '0.0.1'
+    compile group: 'onethreeseven', name: 'common', version: '0.0.3'
     compile group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
     compile group: 'com.beust', name: 'jcommander', version: '1.48'
     compile group: 'ca.pfv.spmf', name: 'spmf', version: '2.1.2'

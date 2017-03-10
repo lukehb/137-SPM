@@ -14,8 +14,8 @@ public class CoveredSequence {
 
     private static final String coverStrPrefix = " #COVER:";
 
-    private final int cover;
-    private final List<SequenceEdge> sequence;
+    int cover;
+    final List<SequenceEdge> sequence;
 
     public CoveredSequence(List<SequenceEdge> sequence) {
         if (sequence == null || sequence.isEmpty()) {
@@ -74,7 +74,19 @@ public class CoveredSequence {
         return sb.toString();
     }
 
-    private int[] getIds(){
+    int[] getNodeIds(){
+        int[] ids = new int[sequence.size()+1];
+        Iterator<SequenceEdge> iter = sequence.iterator();
+        ids[0] = iter.next().source.id;
+        int i = 1;
+        while(iter.hasNext()){
+            ids[i] = iter.next().destination.id;
+            i++;
+        }
+        return ids;
+    }
+
+    private int[] getEdgeIds(){
         int[] ids = new int[sequence.size()];
         int i = 0;
         for (SequenceEdge sequenceEdge : sequence) {
@@ -89,14 +101,14 @@ public class CoveredSequence {
         if (this == o) return true;
         if (o == null || !(o instanceof CoveredSequence)) return false;
         CoveredSequence that = (CoveredSequence) o;
-        return cover == that.cover && Arrays.equals(this.getIds(), that.getIds());
+        return cover == that.cover && Arrays.equals(this.getEdgeIds(), that.getEdgeIds());
 
     }
 
     @Override
     public int hashCode() {
         int result = cover;
-        result = 31 * result + Arrays.hashCode(getIds());
+        result = 31 * result + Arrays.hashCode(getEdgeIds());
         return result;
     }
 

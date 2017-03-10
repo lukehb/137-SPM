@@ -1,6 +1,7 @@
 package onethreeseven.spm.algorithm;
 
 import onethreeseven.spm.data.SPMFParser;
+import onethreeseven.spm.model.ContiguousSubSeqIterator;
 import onethreeseven.spm.model.Trie;
 import java.io.File;
 import java.util.Arrays;
@@ -28,8 +29,16 @@ public class PatternContainmentCalculator {
         int[][] subset = new SPMFParser().parse(subsetPatterns, 1);
         log.info("Building trie from subset patterns.");
         Trie<Integer> t = new Trie<>();
+        //populate trie with sequences from the subset pattern output
         for (int[] sequence : subset) {
-            t.add(Arrays.stream(sequence).boxed().toArray(Integer[]::new));
+            int k = sequence.length;
+            while(k > 0){
+                ContiguousSubSeqIterator iter = new ContiguousSubSeqIterator(k, sequence);
+                while(iter.hasNext()){
+                    t.add(iter.nextBoxed());
+                }
+                k--;
+            }
         }
         subset = null;
 

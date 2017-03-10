@@ -11,9 +11,13 @@ public class Trie<T> {
 
     private static int idGen = 0;
 
-    private final TrieNode rootNode = new TrieNode(null);
+    private final TrieNode rootNode;
     private final BitSet lockedNodes = new BitSet();
     private final BitSet markedNodes = new BitSet();
+
+    public Trie(){
+        this.rootNode = createNode(null);
+    }
 
     public boolean add(T[] sequence){
         return add(sequence, sequence.length, false, false);
@@ -73,7 +77,7 @@ public class Trie<T> {
                 }
 
                 for (; nodesProcessed < sequence.length; nodesProcessed++) {
-                    TrieNode newNode = new TrieNode(sequence[nodesProcessed]);
+                    TrieNode newNode = createNode(sequence[nodesProcessed]);
                     curNode.children.add(newNode);
                     if(nodesProcessed + 1 == sequence.length){
                         if(lockLastNode){lock(newNode);}
@@ -86,6 +90,26 @@ public class Trie<T> {
             }
         }
         return false;
+    }
+
+    public boolean isEmpty(){
+        return rootNode.children.isEmpty();
+    }
+
+    /**
+     * Removes a node from the root node.
+     * @param item The node to remove.
+     * @return True if the node was a child of the root node, otherwise false.
+     */
+    public boolean remove1stLevelNode(T item) {
+        TrieNode childToRemove = null;
+        for (TrieNode child : rootNode.children) {
+            if (child.getValue().equals(item)) {
+                childToRemove = child;
+                break;
+            }
+        }
+        return childToRemove != null && this.rootNode.removeChild(childToRemove);
     }
 
     /**
@@ -112,6 +136,36 @@ public class Trie<T> {
      */
     public void unlockAll() {
         lockedNodes.clear();
+    }
+
+    /**
+     * Checks that the end node is the new sequence meets the required support
+     * and if it doesn't then remove it from being stored.
+     * @param sequence The sequence to test.
+     * @param minSup The minimum support to meet.
+     * @return
+     */
+    public boolean supersede(T[] sequence, int minSup){
+        ArrayList<TrieNode> path = new ArrayList<>(sequence.length);
+        Iterator<TrieNode> iter = getSequenceIter(sequence);
+
+        while(iter.hasNext()){
+            TrieNode node = iter.next();
+            if(node != null){
+                path.add(node);
+            }
+        }
+
+        if(path.size() == sequence.length) {
+            TrieNode endNode = path.get(path.size() - 1);
+            TrieNode parent = (path.size() == 1) ? rootNode : path.get(path.size() - 2);
+            //case: did not meet support requirement, remove it
+            if (endNode.count < minSup) {
+                parent.children.remove(endNode);
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -191,7 +245,7 @@ public class Trie<T> {
         return new TrieIterator<>(this, showSubPatterns);
     }
 
-    private Iterator<TrieNode> getSequenceIter(T[] sequence){
+    Iterator<TrieNode> getSequenceIter(T[] sequence){
         return new Iterator<TrieNode>() {
 
             TrieNode curNode = rootNode;
@@ -230,16 +284,16 @@ public class Trie<T> {
     /**
      * @return An iterator for each unique path in the Trie.
      */
-    Iterator<ArrayDeque<TrieNode>> getPathIter(){
+    Iterator<ArrayList<TrieNode>> getPathIter(){
 
-        final ArrayDeque<TrieNode> path = new ArrayDeque<>();
-        path.addFirst(rootNode);
+        final ArrayList<TrieNode> path = new ArrayList<>();
+        path.add(rootNode);
         //a node if considered visited once all of its children
         //have been visited. This means nodes with no children are visited
         //once we have traversed to them.
         final BitSet visited = new BitSet();
 
-        return new Iterator<ArrayDeque<TrieNode>>() {
+        return new Iterator<ArrayList<TrieNode>>() {
 
             @Override
             public boolean hasNext() {
@@ -248,16 +302,16 @@ public class Trie<T> {
 
             @Override
             @SuppressWarnings("unchecked")
-            public ArrayDeque<TrieNode> next() {
+            public ArrayList<TrieNode> next() {
 
-                TrieNode endNode = path.peekLast();
+                TrieNode endNode = path.get(path.size()-1);
 
                 //traverse up the tree if we have already processed this node
                 while(!path.isEmpty()){
                     boolean isVisited = visited.get(endNode.id);
                     if(isVisited){
-                        path.pollLast();
-                        endNode = path.peekLast();
+                        path.remove(path.size()-1); //poll
+                        endNode = path.get(path.size()-1); //peek last
                     }
                     //found and unvisited node, break to process it
                     else{
@@ -273,7 +327,7 @@ public class Trie<T> {
                 while(!endNode.children.isEmpty()){
                     for (TrieNode child : endNode.children) {
                         if(!visited.get(child.id)){
-                            path.addLast(child);
+                            path.add(child);
                             endNode = child;
                             break;
                         }
@@ -284,12 +338,10 @@ public class Trie<T> {
                 visited.set(endNode.id);
 
                 //check parents to make sure have not become "visited" by proxy because we made this child visited
-                Iterator<TrieNode> iter = path.descendingIterator();
-                //skip path end node, we just processed it above
-                iter.next();
-                //check its parents
-                while(iter.hasNext()){
-                    TrieNode pathNode = iter.next();
+
+                //note: the "-2" because we have just processed the end node above
+                for (int i = path.size() - 2; i >= 0; i--) {
+                    TrieNode pathNode = path.get(i);
                     //check path node that is has unvisited children
                     if(pathNode.children.isEmpty()){
                         visited.set(pathNode.id);
@@ -312,11 +364,8 @@ public class Trie<T> {
                     }
                 }
 
-                //turn path into array
-                ArrayDeque<TrieNode> pathCopy = path.clone();
-                //remove the root node, it is implied
-                pathCopy.poll();
-                return pathCopy;
+                //copy path and remove first(root) node
+                return new ArrayList<>(path.subList(1, path.size()));
             }
         };
     }
@@ -335,6 +384,10 @@ public class Trie<T> {
 
     boolean isMarked(TrieNode node){
         return markedNodes.get(node.id);
+    }
+
+    protected TrieNode createNode(T value){
+        return new TrieNode(value);
     }
 
     private boolean isLocked(TrieNode node){
@@ -356,6 +409,10 @@ public class Trie<T> {
             this.id = idGen++;
             this.value = value;
             this.children = new ArrayList<>(0);
+        }
+
+        public boolean removeChild(TrieNode child){
+            return this.children.remove(child);
         }
 
         public int getCount() {

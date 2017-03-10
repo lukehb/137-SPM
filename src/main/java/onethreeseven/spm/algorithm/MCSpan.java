@@ -28,8 +28,4 @@ public class MCSpan extends AbstractContiguousSPM {
         }
     }
 
-    @Override
-    protected String getPatternClosureSuffix() {
-        return " [MAX] ";
-    }
 }

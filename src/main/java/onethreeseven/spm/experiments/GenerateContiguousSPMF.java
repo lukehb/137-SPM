@@ -10,9 +10,9 @@ import java.io.File;
  */
 public class GenerateContiguousSPMF {
 
-    private static final int nSequences = 1000;
+    private static final int nSequences = 100;
     private static final int nDistinctItems = 10;
-    private static final int sequenceLength = 10;
+    private static final int sequenceLength = 10000;
 
     private static final File outputFile = new File(FileUtil.makeAppDir("spmf-files"),
             "synthetic_" + nSequences * sequenceLength + ".txt");

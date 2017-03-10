@@ -1,11 +1,8 @@
 package onethreeseven.spm.algorithm;
 
+import onethreeseven.spm.data.SequentialPatternWriter;
 import onethreeseven.spm.model.*;
-
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,8 +17,6 @@ import java.util.List;
  * @author Luke Bermingham
  */
 public abstract class AbstractContiguousSPM {
-
-    private static final String SUPPORT_PREFIX = "#SUP:";
 
     /////////////////
     //INTERNAL METHODS
@@ -107,7 +102,6 @@ public abstract class AbstractContiguousSPM {
 
     protected abstract IPatternClosure getPatternClosure();
     protected abstract boolean addToOutput(ArrayList<Integer> pattern, TrieIterator<Integer> patternIter);
-    protected abstract String getPatternClosureSuffix();
 
     //////////////////
     //PUBLIC METHODS
@@ -151,28 +145,17 @@ public abstract class AbstractContiguousSPM {
     public void run(int[][] sequences, int minSupAbs, File outputFile){
         final Trie<Integer> patterns = populateTrie(sequences, minSupAbs);
         final TrieIterator<Integer> iter = patterns.getPatternIterator(true);
-        final String suffix = getPatternClosureSuffix();
+        final SequentialPatternWriter writer = new SequentialPatternWriter(outputFile);
 
-        try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-            final StringBuilder sb = new StringBuilder();
-            while(iter.hasNext()){
-                ArrayList<Integer> pattern = iter.next();
-                int support = iter.getCount();
-                if(!addToOutput(pattern, iter)){
-                    continue;
-                }
-                for (Integer symbol : pattern) {
-                    sb.append(symbol).append(" ");
-                }
-                sb.append(SUPPORT_PREFIX).append(support).append(suffix);
-                bw.write(sb.toString());
-                bw.newLine();
-                sb.setLength(0);
+        while(iter.hasNext()){
+            ArrayList<Integer> pattern = iter.next();
+            int support = iter.getCount();
+            if(!addToOutput(pattern, iter)){
+                continue;
             }
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            writer.write(new SequentialPattern(pattern, support));
         }
+        writer.close();
     }
+
 }

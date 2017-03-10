@@ -1,16 +1,13 @@
 package onethreeseven.spm.command;
 
-import onethreeseven.spm.algorithm.GraspMiner;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.converters.FileConverter;
-import onethreeseven.spm.data.RepSeqWriter;
+import onethreeseven.common.util.FileUtil;
+import onethreeseven.spm.algorithm.GraspMiner;
 import onethreeseven.spm.data.SPMFParser;
 import onethreeseven.spm.model.RepSeq;
-import onethreeseven.spm.model.SequenceGraph;
-import onethreeseven.common.util.FileUtil;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -71,28 +68,16 @@ public class GraspMinerCommand extends AbstractCommand {
         //the algorithm
         long startTime = System.currentTimeMillis();
         int nPatterns = 0;
-        Collection<SequenceGraph> graphs = SequenceGraph.fromSequences(sdb);
-        ArrayList<RepSeq> patterns = new ArrayList<>();
-        GraspMiner algo = new GraspMiner();
-        for (SequenceGraph graph : graphs) {
-            Collection<RepSeq> p = algo.run(graph, sdb, minSup, maxGap);
-            nPatterns += p.size();
-            if(writingOutput){
-                patterns.addAll(p);
-            }
+
+        if(writingOutput){
+            new GraspMiner().run(sdb, minSup, maxGap, out);
+            System.out.println("GraspMiner pattern output at: " + out.getAbsolutePath());
+        }else{
+            Collection<RepSeq> patterns = new GraspMiner().run(sdb, minSup, maxGap);
+            nPatterns = patterns.size();
         }
         long endTime = System.currentTimeMillis();
         System.out.println("GraspMiner algorithm finished in: " + (endTime-startTime) + "ms");
         System.out.println("GraspMiner found " + nPatterns + " patterns");
-
-        //writing
-        if(writingOutput){
-            RepSeqWriter writer = new RepSeqWriter();
-            writer.write(out, patterns);
-            System.out.println("GraspMiner pattern output at: " + out.getAbsolutePath());
-        }
-
-
-
     }
 }

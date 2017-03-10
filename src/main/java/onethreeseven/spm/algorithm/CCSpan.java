@@ -33,8 +33,4 @@ public class CCSpan extends AbstractContiguousSPM {
         }
     }
 
-    @Override
-    protected String getPatternClosureSuffix() {
-        return " [CLOSED] ";
-    }
 }

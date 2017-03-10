@@ -28,8 +28,4 @@ public class ACSpan extends AbstractContiguousSPM {
         }
     }
 
-    @Override
-    protected String getPatternClosureSuffix() {
-        return "";
-    }
 }

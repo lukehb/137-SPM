@@ -1,8 +1,8 @@
 package onethreeseven.spm.model;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Pattern iterator for {@link Trie}. It also has facility to check the count of a pattern
@@ -13,8 +13,8 @@ public class TrieIterator<T> implements Iterator<ArrayList<T>> {
 
     private final boolean showSubPatterns;
     private final Trie<T> t;
-    private final Iterator<ArrayDeque<Trie<T>.TrieNode>> pathIter;
-    private ArrayDeque<Trie<T>.TrieNode> currentPatten = null;
+    private final Iterator<ArrayList<Trie<T>.TrieNode>> pathIter;
+    private List<Trie<T>.TrieNode> currentPatten = null;
     private Trie<T>.TrieNode endNode = null;
 
     TrieIterator(Trie<T> t, boolean showSubPatterns) {
@@ -47,13 +47,15 @@ public class TrieIterator<T> implements Iterator<ArrayList<T>> {
         for (Trie<T>.TrieNode node : currentPatten) {
             pattern.add(node.getValue());
         }
-        endNode = currentPatten.pollLast();
+        endNode = currentPatten.remove(currentPatten.size()-1);
         if(!showSubPatterns){
             currentPatten.clear();
         }
 
         return pattern;
     }
+
+    public T getValue(){ return  endNode != null ? endNode.getValue() : null; }
 
     public int getCount() {
         return endNode != null ? endNode.getCount() : 0;
@@ -67,6 +69,45 @@ public class TrieIterator<T> implements Iterator<ArrayList<T>> {
         if(endNode != null){
             t.unMark(endNode);
         }
+    }
+
+    /**
+     * Un-parent a node in the current pattern.
+     * @param childIdx The index of the node to un-parent.
+     */
+    public boolean unParent(T[] path, int childIdx){
+        if(childIdx == 0){
+            throw new IllegalArgumentException("Cannot un-parent first index.");
+        }
+
+        if(path.length <= 1){
+            throw new IllegalStateException("Cannot un-parent anything from an empty or length-1 pattern.");
+        }
+
+        //re-build path if it is null
+        List<Trie<T>.TrieNode> pattern = currentPatten;
+        if(pattern.isEmpty()){
+            pattern = new ArrayList<>();
+            Iterator<Trie<T>.TrieNode> nodeIter = t.getSequenceIter(path);
+            while(nodeIter.hasNext()){
+                pattern.add(nodeIter.next());
+            }
+        }
+
+        //do the actual removal
+        int i = 0;
+        int parentIdx = childIdx - 1;
+        Trie<T>.TrieNode parent = null;
+        for (Trie<T>.TrieNode node : pattern) {
+            if(i == parentIdx){
+                parent = node;
+            }
+            else if(i == childIdx && parent != null){
+                return parent.removeChild(node);
+            }
+            i++;
+        }
+        return false;
     }
 
 }

@@ -2,10 +2,13 @@ package onethreeseven.spm.algorithm;
 
 import onethreeseven.collections.IntArray;
 import onethreeseven.collections.IntIterator;
+import onethreeseven.spm.data.SequentialPatternWriter;
 import onethreeseven.spm.model.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 /**
  * Mine the representative sequences from the edges graph.
@@ -13,20 +16,23 @@ import java.util.Collection;
  */
 public class GraspMiner {
 
+    private static final Logger log = Logger.getLogger(ProtoMiner.class.getSimpleName());
+
     private int minSup;
     private int maxGap;
     private BitSet processedEdges;
 
-    public Collection<RepSeq> run(SequenceGraph g, int[][] sequences, int minSup, int maxGap){
+    private interface PatternProcessor{
+        void processPattern(RepSeq pattern);
+    }
 
-        ArrayList<RepSeq> out = new ArrayList<>();
+    private void run(SequenceGraph g, int[][] sequences, int minSup, int maxGap, PatternProcessor processor){
 
         this.minSup = Math.max(1, minSup);
         this.maxGap = Math.max(1, maxGap);
         this.processedEdges = new BitSet();
 
-        for (int i = 0; i < sequences.length; i++) {
-            int[] sequence = sequences[i];
+        for (int[] sequence : sequences) {
             if (sequence.length == 0) {
                 continue;
             }
@@ -48,16 +54,49 @@ public class GraspMiner {
                     //process path edges
                     processedEdges.or(p.getEdgeIds());
                     //save path
-                    out.add(new RepSeq(
+                    processor.processPattern(new RepSeq(
                             p.getCover(),
                             p.visitations.getSupport(),
-                            p.visitations,
                             p.getSequence()
                     ));
                 }
             }
         }
-        return out;
+    }
+
+    public Collection<RepSeq> run(int[][] sequences, int minSup, int maxGap){
+        final ArrayList<RepSeq> patterns = new ArrayList<>();
+        PatternProcessor processor = patterns::add;
+        log.info("Extracting sequence graph");
+        Collection<SequenceGraph> graphs = SequenceGraph.fromSequences(sequences);
+        log.info("Mining patterns");
+        for (SequenceGraph graph : graphs) {
+            run(graph, sequences, minSup, maxGap, processor);
+        }
+        return patterns;
+    }
+
+    /**
+     * Mine the patterns and write them to a file as we find them.
+     * @param sequences The sequence database to mine.
+     * @param minSup The minimum required support to become a pattern.
+     * @param maxGap The maximum gap between items to in the database that can become patterns.
+     * @param outFile The file to write the pattern to.
+     */
+    public void run(int[][] sequences, int minSup, int maxGap, File outFile){
+        final SequentialPatternWriter writer = new SequentialPatternWriter(outFile);
+        PatternProcessor processor = writer::write;
+
+        //load sequence graphs
+        log.info("Extracting sequence graph");
+        Collection<SequenceGraph> graphs = SequenceGraph.fromSequences(sequences);
+        log.info("Mining patterns");
+        for (SequenceGraph g : graphs) {
+            //run algo on each graph
+            run(g, sequences, minSup, maxGap, processor);
+        }
+        //close file we have been writing to
+        writer.close();
     }
 
     private Path expandPath(Path p, SequenceGraph g, IntIterator seqIter){

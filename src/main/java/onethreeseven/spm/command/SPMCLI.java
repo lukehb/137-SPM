@@ -15,7 +15,6 @@ public class SPMCLI extends AbstractCLI {
                 new ListCommandsCommand(jc),
                 new GraspMinerCommand(),
                 new CCSpanCommand(),
-                new SPMFToGephiCommand(),
                 new CalculateSPMFStatsCommand()
         );
     }
