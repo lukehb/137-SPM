@@ -29,7 +29,7 @@ public class SPMFParserIterator {
         try{
             this.reader = new BufferedReader(new FileReader(patternFile));
         }catch (FileNotFoundException e){
-            logger.severe("Could not find spmf output file to parse: " + e.getMessage());
+            logger.severe("Could not find spmf output file to parseSequences: " + e.getMessage());
         }
 
     }

@@ -30,7 +30,7 @@ public class CalculateSPMFStatsCommand extends AbstractCommand{
             System.out.println("Input file cannot be read.");
             return;
         }
-        int[][] sdb = new SPMFParser().parse(in, 0);
+        int[][] sdb = new SPMFParser().parseSequences(in);
         System.out.println("Loaded SPMF db: " + in.getName());
         SequenceDbStatsCalculator calc = new SequenceDbStatsCalculator();
         calc.calculate(sdb);

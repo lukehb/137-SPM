@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Makes a {@link onethreeseven.spm.model.Trie}
@@ -16,6 +17,8 @@ import java.util.List;
  * @author Luke Bermingham
  */
 public class CoverMiner {
+
+    private static final Logger log = Logger.getLogger(CoverMiner.class.getSimpleName());
 
     private interface PatternProcessor{
         void process(CoveredSequentialPattern pattern);
@@ -48,11 +51,10 @@ public class CoverMiner {
 
     private void run(int[][] sequences, int minSup, PatternProcessor processor){
 
-        //build a cover map
-        CoverMap coverMap = new CoverMap(sequences);
         //build a trie with custom values
-        Trie<CoveredItem> t = populateTrie(sequences, minSup, coverMap);
+        Trie<CoveredItem> t = populateTrie(sequences, minSup);
 
+        log.info("Mining patterns");
         while(!t.isEmpty()){
             //visit all the paths in the Trie and find the most covered path
             CoveredSequentialPattern mostCoveredPath = getMostCoveredPath(t);
@@ -142,7 +144,13 @@ public class CoverMiner {
         return bestPattern;
     }
 
-    private Trie<CoveredItem> populateTrie(int[][] sequences, int minSup, CoverMap coverMap){
+    private Trie<CoveredItem> populateTrie(int[][] sequences, int minSup){
+
+        log.info("Making cover map");
+        CoverMap coverMap = new CoverMap(sequences);
+
+
+        log.info("Adding sequences to trie");
         final Trie<CoveredItem> t = new Trie<>();
         int k = 1;
         while(addLengthKPatterns(t, k, minSup, sequences, coverMap) > 0){

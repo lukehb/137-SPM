@@ -13,20 +13,24 @@ import java.io.IOException;
  */
 public class MinePatternsContiguous {
 
-    private static final String filename = "synthetic_1000000";
+    private static final String filename = "tdrive";
     private static final File inFile = new File(FileUtil.makeAppDir("spmf-files"), filename + ".txt");
-    private static final int minSupAbs = 10;
-    private static final int minLen = -1;
-    private static final int topk = 8;
-    private static final SPClosure selectedPatternClosure = SPClosure.MAX;
+    private static final int minSupAbs = 180;
+    private static final double maxRedundancy = 0;
+    private static final int topk = 797;
+    private static final SPClosure selectedPatternClosure = SPClosure.DISTINCT;
 
     private enum SPClosure {
-        ALL, CLOSED, MAX, DISTINCT, TOPK, REP
+        ALL, CLOSED, MAX, DISTINCT, TOPK
     }
 
     private static File makeOutFile(SPClosure closure){
+
+        int redund = (int) (maxRedundancy * 100);
+
         String outFileName = filename + "_" + closure.name() +
-                ((closure == SPClosure.TOPK && topk > 0) ? "_" + topk : "_minsup_" + minSupAbs) + ".txt";
+                ((closure == SPClosure.TOPK && topk > 0) ? "_" + topk : "_minsup_" + minSupAbs) +
+                (closure == SPClosure.DISTINCT ? "redund_" + redund : "") +  ".txt";
         return new File(FileUtil.makeAppDir("contig_patterns/" + filename), outFileName);
     }
 
@@ -34,10 +38,13 @@ public class MinePatternsContiguous {
 
         System.out.println("Loading spmf file");
         SPMFParser parser = new SPMFParser();
-        int[][] seqDB = parser.parse(inFile, 1);
+
+        int[][] seqDB = parser.parseSequences(inFile);
 
 
         File outFile = makeOutFile(selectedPatternClosure);
+
+        long startTime = System.currentTimeMillis();
 
         switch (selectedPatternClosure){
             case ALL:
@@ -53,8 +60,13 @@ public class MinePatternsContiguous {
                 new MCSpan().run(seqDB, minSupAbs, outFile);
                 break;
             case DISTINCT:
-                System.out.println("Running new GraspMiner");
-                new CoverMiner().run(seqDB, minSupAbs, outFile);
+                System.out.println("Running OutMiner");
+                File allPatternsFile = makeOutFile(SPClosure.ALL);
+                if(!allPatternsFile.exists()){
+                    System.out.println("Need output to mine, run AC-SPAN first.");
+                }else{
+                    new OutMiner().run(seqDB, new SPMFParser().parsePatterns(allPatternsFile), maxRedundancy, outFile);
+                }
                 break;
             case TOPK:
                 System.out.println("Running TKS");
@@ -63,13 +75,24 @@ public class MinePatternsContiguous {
                 algo.runAlgorithm(inFile.getAbsolutePath(), outFile.getAbsolutePath(), topk);
                 algo.writeResultTofile(outFile.getAbsolutePath());
                 break;
-            case REP:
-                System.out.println("Running old grasp miner");
-                new GraspMiner().run(seqDB, minSupAbs, 1, outFile);
-                break;
         }
 
+        long runningTime = System.currentTimeMillis() - startTime;
         System.out.println("Done, collect patterns at: " + outFile.getAbsolutePath());
+
+        System.out.println("#Sequences, #Items, Average Sequence Length, #Distinct items, Redundancy(%), Running Time(ms)");
+
+        SequenceDbStatsCalculator stats = new SequenceDbStatsCalculator();
+        stats.calculate(new SPMFParser().parseSequences(outFile));
+
+        System.out.println(
+                stats.getTotalSequences() + ", " +
+                stats.getTotalItems() + ", " +
+                stats.getAvgSequenceLength() + ", " +
+                stats.getnDistinctItems() + ", " +
+                stats.getRedundancy() + ", " +
+                runningTime);
+
     }
 
 }

@@ -17,7 +17,7 @@ public class SPMFSequenceComparator {
      * @return What percentage of sequences in A are found in B.
      */
     public double run(File spmfA, File spmfB){
-        return run(new SPMFParser().parse(spmfA, 0), new SPMFParser().parse(spmfB, 0));
+        return run(new SPMFParser().parseSequences(spmfA), new SPMFParser().parseSequences(spmfB));
     }
 
     /**

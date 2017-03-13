@@ -12,6 +12,7 @@ public class SequenceDbStatsCalculator {
     private int totalItems;
     private int nDistinctItems;
     private double avgSequenceLength;
+    private double redundancy;
 
     public void calculate(int[][] seqDb){
         totalItems = 0;
@@ -31,8 +32,9 @@ public class SequenceDbStatsCalculator {
                 distinctItems.set(item);
             }
         }
-        nDistinctItems = distinctItems.size();
+        nDistinctItems = distinctItems.cardinality();
         avgSequenceLength = totalItems/(double)totalSequences;
+        redundancy = new RedundancyCalculator().run(seqDb);
     }
 
     public int getTotalSequences() {
@@ -51,12 +53,14 @@ public class SequenceDbStatsCalculator {
         return avgSequenceLength;
     }
 
+    public double getRedundancy() {
+        return redundancy;
+    }
+
     public void printStats(){
-        //output stats
-        System.out.println("#Sequences: " + totalSequences);
-        System.out.println("#Items: " + totalItems);
-        System.out.println("Avg sequence length: " + avgSequenceLength);
-        System.out.println("#Distinct items: " + nDistinctItems);
+        System.out.println("#Sequences, #Items, Average Sequence Length, #Distinct items, Redundancy(%)");
+        System.out.println(totalSequences + ", " + totalItems + ", "
+                + avgSequenceLength + ", " + nDistinctItems + ", " + redundancy);
     }
 
 }

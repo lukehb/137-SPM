@@ -62,7 +62,7 @@ public class GraspMinerCommand extends AbstractCommand {
 
         //loading in
         SPMFParser parser = new SPMFParser();
-        int[][] sdb = parser.parse(in, 0);
+        int[][] sdb = parser.parseSequences(in);
 
 
         //the algorithm

@@ -55,7 +55,7 @@ public class CCSpanCommand extends AbstractCommand {
 
         //loading in
         SPMFParser parser = new SPMFParser();
-        int[][] sdb = parser.parse(in, 0);
+        int[][] sdb = parser.parseSequences(in);
 
         long startTime = System.currentTimeMillis();
         long endTime;

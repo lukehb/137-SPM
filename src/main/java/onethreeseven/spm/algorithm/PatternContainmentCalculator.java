@@ -26,7 +26,7 @@ public class PatternContainmentCalculator {
 
         log.info("Loading subset patterns.");
         //build trie of subset patterns
-        int[][] subset = new SPMFParser().parse(subsetPatterns, 1);
+        int[][] subset = new SPMFParser().parseSequences(subsetPatterns);
         log.info("Building trie from subset patterns.");
         Trie<Integer> t = new Trie<>();
         //populate trie with sequences from the subset pattern output
@@ -44,7 +44,7 @@ public class PatternContainmentCalculator {
 
         //check how many patterns in superset are contained in the trie
         log.info("Loading superset patterns.");
-        int[][] superset = new SPMFParser().parse(supersetPatterns, 1);
+        int[][] superset = new SPMFParser().parseSequences(supersetPatterns);
         int nContained = 0;
         log.info("Testing superset patterns for containment in the subset trie.");
         for (int[] sequence : superset) {
