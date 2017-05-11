@@ -21,7 +21,7 @@ If we consider these two sequential patterns:
 They are perfectly legal max-patterns because neither is the super-pattern of the other, however, they express mostly the same information. In massive and pattern dense sequence databases even max-pattern sequential pattern mining algorithms can produce huge pattern outputs - too large to interpret or visualise even. Surely, there is some way to mine patterns without producing a massive, mostly redundant, set of sequential patterns?
 
 # DC-SPAN
-DC-SPAN is our solution to produce low redundancy sequential pattern output. The trade-off for redundancy-controleld pattern output is it is purposefully a *lossy* sequential pattern mining technique.
+DC-SPAN is our solution to produce low redundancy sequential pattern output. The trade-off for redundancy-controlled pattern output is it is purposefully a *lossy* sequential pattern mining technique.
 
 The white-paper describing DC-SPAN is here (coming soon...pm me if I forget to update this). 
 
