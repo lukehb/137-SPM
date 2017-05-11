@@ -47,7 +47,10 @@ public class TrieIterator<T> implements Iterator<ArrayList<T>> {
         for (Trie<T>.TrieNode node : currentPatten) {
             pattern.add(node.getValue());
         }
-        endNode = currentPatten.remove(currentPatten.size()-1);
+        if(!currentPatten.isEmpty()){
+            endNode = currentPatten.remove(currentPatten.size()-1);
+        }
+
         if(!showSubPatterns){
             currentPatten.clear();
         }

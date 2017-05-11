@@ -11,14 +11,20 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Mines the sequential pattern output and prunes it down
+ * Mines the contiguous sequential pattern output and prunes it down
  * to the most covered set that meets the specified redundancy requirements.
  * @author Luke Bermingham
  */
-public class OutMiner {
+public class DCSpan {
 
     private interface PatternProcessor{
         void process(CoveredSequentialPattern pattern);
+    }
+
+    public List<SequentialPattern> run(int[][] seqDb, List<SequentialPattern> patterns, double maxRedundancy){
+        ArrayList<SequentialPattern> out = new ArrayList<>();
+        run(seqDb, patterns, maxRedundancy, out::add);
+        return out;
     }
 
     public void run(int[][] seqDb, List<SequentialPattern> patterns, double maxRedundancy, File outFile){

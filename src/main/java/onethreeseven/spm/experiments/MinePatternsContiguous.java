@@ -15,16 +15,13 @@ public class MinePatternsContiguous {
 
     private static final String filename = "tdrive";
     private static final File inFile = new File(FileUtil.makeAppDir("spmf-files"), filename + ".txt");
-    private static final int minSupAbs = 180;
-    private static final double maxRedundancy = 0;
     private static final int topk = 797;
-    private static final SPClosure selectedPatternClosure = SPClosure.DISTINCT;
 
     private enum SPClosure {
         ALL, CLOSED, MAX, DISTINCT, TOPK
     }
 
-    private static File makeOutFile(SPClosure closure){
+    private static File makeOutFile(SPClosure closure, int minSupAbs, double maxRedundancy){
 
         int redund = (int) (maxRedundancy * 100);
 
@@ -38,38 +35,59 @@ public class MinePatternsContiguous {
 
         System.out.println("Loading spmf file");
         SPMFParser parser = new SPMFParser();
+        System.out.println("Closure, Support, Rel Sup, #Sequences, #Items, Average Sequence Length, #Distinct items, Redundancy(%), Running Time(ms), Compression(%), Lossiness (%)");
 
         int[][] seqDB = parser.parseSequences(inFile);
 
+        int[] sups = {1405};
+        double[] maxRedunds = {0};
+        SPClosure[] closures = {SPClosure.DISTINCT};
 
-        File outFile = makeOutFile(selectedPatternClosure);
+        //do mining with this sup and this closure
+        for (int minSupAbs : sups) {
+            for (SPClosure closure : closures) {
+                if(closure == SPClosure.DISTINCT){
+                    for (double maxRedund : maxRedunds) {
+                        doMining(seqDB, closure, minSupAbs, maxRedund);
+                    }
+                }else{
+                    doMining(seqDB, closure, minSupAbs, 0);
+                }
+            }
+        }
 
+        //doMining(seqDB, selectedPatternClosure, minSupAbs);
+    }
+
+    private static void doMining(int[][] seqDB, SPClosure selectedPatternClosure, int minSupAbs, double maxRedundancy) throws IOException {
+
+        File outFile = makeOutFile(selectedPatternClosure, minSupAbs, maxRedundancy);
         long startTime = System.currentTimeMillis();
 
         switch (selectedPatternClosure){
             case ALL:
-                System.out.println("Running AC-Span");
+                System.out.print("All, ");
                 new ACSpan().run(seqDB, minSupAbs, outFile);
                 break;
             case CLOSED:
-                System.out.println("Running CC-Span");
+                System.out.print("Closed, ");
                 new CCSpan().run(seqDB, minSupAbs, outFile);
                 break;
             case MAX:
-                System.out.println("Running MC-Span");
+                System.out.print("Max, ");
                 new MCSpan().run(seqDB, minSupAbs, outFile);
                 break;
             case DISTINCT:
-                System.out.println("Running OutMiner");
-                File allPatternsFile = makeOutFile(SPClosure.ALL);
+                System.out.print("Distinct " + maxRedundancy + ", ");
+                File allPatternsFile = makeOutFile(SPClosure.ALL, minSupAbs, maxRedundancy);
                 if(!allPatternsFile.exists()){
                     System.out.println("Need output to mine, run AC-SPAN first.");
                 }else{
-                    new OutMiner().run(seqDB, new SPMFParser().parsePatterns(allPatternsFile), maxRedundancy, outFile);
+                    new DCSpan().run(seqDB, new SPMFParser().parsePatterns(allPatternsFile), maxRedundancy, outFile);
                 }
                 break;
             case TOPK:
-                System.out.println("Running TKS");
+                System.out.print("topk-" + topk);
                 AlgoTKS algo = new AlgoTKS();
                 algo.setMaxGap(1);
                 algo.runAlgorithm(inFile.getAbsolutePath(), outFile.getAbsolutePath(), topk);
@@ -78,20 +96,45 @@ public class MinePatternsContiguous {
         }
 
         long runningTime = System.currentTimeMillis() - startTime;
-        System.out.println("Done, collect patterns at: " + outFile.getAbsolutePath());
 
-        System.out.println("#Sequences, #Items, Average Sequence Length, #Distinct items, Redundancy(%), Running Time(ms)");
+        System.out.print(minSupAbs + ", " + (double)minSupAbs/seqDB.length + ", ");
 
         SequenceDbStatsCalculator stats = new SequenceDbStatsCalculator();
         stats.calculate(new SPMFParser().parseSequences(outFile));
 
-        System.out.println(
+        System.out.print(
                 stats.getTotalSequences() + ", " +
-                stats.getTotalItems() + ", " +
-                stats.getAvgSequenceLength() + ", " +
-                stats.getnDistinctItems() + ", " +
-                stats.getRedundancy() + ", " +
-                runningTime);
+                        stats.getTotalItems() + ", " +
+                        stats.getAvgSequenceLength() + ", " +
+                        stats.getnDistinctItems() + ", " +
+                        stats.getRedundancy() + ", " +
+                        runningTime + ", ");
+
+        //output compression and lossiness
+        if(selectedPatternClosure == SPClosure.ALL){
+            System.out.print("0, 0");
+        }else{
+            File allPatternsFile = makeOutFile(SPClosure.ALL, minSupAbs, maxRedundancy);
+            if(allPatternsFile.exists()){
+                //do compression
+                int allItemsSubset = stats.getTotalItems();
+                stats.calculate(new SPMFParser().parseSequences(allPatternsFile));
+                int allItems = stats.getTotalItems();
+                double compression = 1 - ((double)allItemsSubset)/allItems;
+                System.out.print(compression + ", ");
+                //do lossiness
+                if(selectedPatternClosure == SPClosure.DISTINCT){
+                    double lossiness = new PatternsLossinessCalculator().run(outFile, allPatternsFile);
+                    System.out.print(lossiness);
+                }
+                else{
+                    System.out.print(0);
+                }
+            }else{
+                System.out.print("Run AC-SPAN");
+            }
+        }
+        System.out.println(" ");
 
     }
 

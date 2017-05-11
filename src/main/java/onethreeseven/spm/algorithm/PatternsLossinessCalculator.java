@@ -12,9 +12,9 @@ import java.util.logging.Logger;
  * find the percentage of B that intersects with A.
  * @author Luke Bermingham
  */
-public class PatternContainmentCalculator {
+public class PatternsLossinessCalculator {
 
-    private static final Logger log = Logger.getLogger(PatternContainmentCalculator.class.getSimpleName());
+    private static final Logger log = Logger.getLogger(PatternsLossinessCalculator.class.getSimpleName());
 
     /**
      *
@@ -24,10 +24,10 @@ public class PatternContainmentCalculator {
      */
     public double run(File subsetPatterns, File supersetPatterns){
 
-        log.info("Loading subset patterns.");
+        //log.info("Loading subset patterns.");
         //build trie of subset patterns
         int[][] subset = new SPMFParser().parseSequences(subsetPatterns);
-        log.info("Building trie from subset patterns.");
+        //log.info("Building trie from subset patterns.");
         Trie<Integer> t = new Trie<>();
         //populate trie with sequences from the subset pattern output
         for (int[] sequence : subset) {
@@ -43,10 +43,10 @@ public class PatternContainmentCalculator {
         subset = null;
 
         //check how many patterns in superset are contained in the trie
-        log.info("Loading superset patterns.");
+        //log.info("Loading superset patterns.");
         int[][] superset = new SPMFParser().parseSequences(supersetPatterns);
         int nContained = 0;
-        log.info("Testing superset patterns for containment in the subset trie.");
+        //log.info("Testing superset patterns for containment in the subset trie.");
         for (int[] sequence : superset) {
             Integer[] pattern = Arrays.stream(sequence).boxed().toArray(Integer[]::new);
             if(t.getFrequencyOf(pattern) > 0){
@@ -54,7 +54,8 @@ public class PatternContainmentCalculator {
             }
         }
 
-        return (double)nContained/superset.length;
+        //1 minus x, because we want lossiness
+        return 1 - (double)nContained/superset.length;
     }
 
 }

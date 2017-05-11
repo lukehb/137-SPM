@@ -1,7 +1,7 @@
 package onethreeseven.spm.experiments;
 
 import onethreeseven.common.util.FileUtil;
-import onethreeseven.spm.algorithm.OutMiner;
+import onethreeseven.spm.algorithm.DCSpan;
 import onethreeseven.spm.data.SPMFParser;
 import java.io.File;
 
@@ -25,7 +25,7 @@ public class MinePatternOutput {
     private static final SPMFParser parser = new SPMFParser();
 
     public static void main(String[] args) {
-        new OutMiner().run(
+        new DCSpan().run(
                 parser.parseSequences(rawSPMFFile),
                 parser.parsePatterns(inputPatternFile),
                 maxRedundancy, outFile);

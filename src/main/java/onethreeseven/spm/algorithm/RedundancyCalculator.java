@@ -2,9 +2,12 @@ package onethreeseven.spm.algorithm;
 
 import onethreeseven.collections.Range;
 import onethreeseven.spm.data.SPMFParser;
+import onethreeseven.spm.model.SequentialPattern;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Calculates redundancy from a sequence database as the number
@@ -25,25 +28,45 @@ public class RedundancyCalculator {
     public double run(int[][] sequences){
 
         HashSet<Range> pairs = new HashSet<>();
-        int totalPairs = 0;
-        int redundantPairs = 0;
+        AtomicInteger totalPairs = new AtomicInteger(0);
+        AtomicInteger redundantPairs = new AtomicInteger(0);
 
         for (int[] sequence : sequences) {
-            int lastIdx = sequence.length - 1;
-            for (int j = 0; j < lastIdx; j++) {
-                int itemA = sequence[j];
-                int itemB = sequence[j+1];
-                Range r = new Range(itemA, itemB);
-                boolean newPair = pairs.add(r);
-                if(!newPair){
-                    redundantPairs++;
-                }
-                totalPairs++;
-            }
+            countPairs(sequence, totalPairs, redundantPairs, pairs);
         }
 
-        return redundantPairs/(double)totalPairs;
+        return redundantPairs.get()/(double)totalPairs.get();
 
+    }
+
+
+    public double run(Collection<SequentialPattern> patterns){
+        HashSet<Range> pairs = new HashSet<>();
+        AtomicInteger totalPairs = new AtomicInteger(0);
+        AtomicInteger redundantPairs = new AtomicInteger(0);
+
+        for (SequentialPattern pattern : patterns) {
+            countPairs(pattern.getSequence(), totalPairs, redundantPairs, pairs);
+        }
+
+        return redundantPairs.get()/(double)totalPairs.get();
+    }
+
+    private void countPairs(int[] sequence,
+                            AtomicInteger totalPairs,
+                            AtomicInteger redundantPairs,
+                            HashSet<Range> processedPairs){
+        int lastIdx = sequence.length - 1;
+        for (int j = 0; j < lastIdx; j++) {
+            int itemA = sequence[j];
+            int itemB = sequence[j+1];
+            Range r = new Range(itemA, itemB);
+            boolean newPair = processedPairs.add(r);
+            if(!newPair){
+                redundantPairs.incrementAndGet();
+            }
+            totalPairs.incrementAndGet();
+        }
     }
 
 }
