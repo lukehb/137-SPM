@@ -20,10 +20,10 @@ If we consider these two sequential patterns:
 `{1,3,7,7,3,1,99}`
 They are perfectly legal max-patterns because neither is the super-pattern of the other, however, they express mostly the same information. In massive and pattern dense sequence databases even max-pattern sequential pattern mining algorithms can produce huge pattern outputs - too large to interpret or visualise even. Surely, there is some way to mine patterns without producing a massive, mostly redundant, set of sequential patterns?
 
-#GraspMiner
-GraspMiner is our solution to produce low redundancy sequential pattern output. It uses a graph-based approach to mine the sequence database and only performs a single pass over the data to extract the patterns. The trade-off for this speed and succintness is it is purposefully a *lossy* sequential pattern mining technique.
+#DC-SPAN
+DC-SPAN is our solution to produce low redundancy sequential pattern output. The trade-off for redundancy-controleld pattern output is it is purposefully a *lossy* sequential pattern mining technique.
 
-The white-paper describing GraspMiner is here (coming soon). The paper compares and GraspMiner to CC-Span, VMSP, and CM-Spade - it demonstrates GraspMiner has good performance and less redundant pattern output.
+The white-paper describing DC-SPAN is here (coming soon...pm me if I forget to update this). 
 
 #CC-Span
 CC-Span is sequential pattern mining algorithm that mines closed-contiguous sequential patterns. It was introduced by Zhang et al., see [here](http://www.sciencedirect.com/science/article/pii/S0950705115002324). We implemented CC-Span from their paper and used Tries to speed up sub-sequence checking.
@@ -32,7 +32,7 @@ CC-Span is sequential pattern mining algorithm that mines closed-contiguous sequ
 For use of GraspMiner please cite:
 ```
 @article{Bermingham2016,
-    title = "Mining Representative Sequential Patterns from Large Sequence Databases",
+    title = "Mining Distinct and Contiguous Sequential Patterns From Large Vehicle Trajectories",
     journal = "In Review",
     pages = "1 - 15",
     year = "2016",
@@ -80,6 +80,6 @@ repositories {
 }
 
 dependencies {
-    compile 'onethreeseven:spm:0.0.2'
+    compile 'onethreeseven:spm:0.0.4'
 }
 ```
