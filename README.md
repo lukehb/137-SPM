@@ -80,6 +80,6 @@ repositories {
 }
 
 dependencies {
-    compile 'onethreeseven:spm:0.0.4'
+    compile 'onethreeseven:spm:0.0.5'
 }
 ```
