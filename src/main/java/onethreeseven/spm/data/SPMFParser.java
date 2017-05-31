@@ -111,27 +111,40 @@ public class SPMFParser {
         return arr.getArray();
     }
 
+    static int extractValuePreceededByString(String line, String preceedingString){
+        //case: has support like #SUP:
+        int supIdx = line.indexOf(preceedingString);
+        int extractedValue = -1;
+        if(supIdx != -1){
+            int startIdx = supIdx + preceedingString.length();
+            int endIdx = startIdx;
+            int lastIdx = line.length();
+            for (; endIdx < lastIdx; endIdx++) {
+                char c = line.charAt(endIdx);
+                //if we hit a non-whitespace non-digit character, stop
+                if(!Character.isWhitespace(c) && !Character.isDigit(c)){
+                    break;
+                }
+            }
+            String candidateSupStr = line.substring(startIdx, endIdx).trim();
+            extractedValue = Integer.parseInt(candidateSupStr);
+        }
+        return extractedValue;
+    }
+
     static SequentialPattern parsePattern(String line, String delimiter){
         line = line.trim();
-        String[] lineParts = line.split(delimiter);
+
+        //spmf sequences always end in -2
+        String[] lineParts = line.split("#")[0].split(delimiter);
 
         IntArray arr = new IntArray(lineParts.length, false);
-        int sup = 0;
-        int cover = -1;
+        int sup = extractValuePreceededByString(line, "#SUP:");
+        int cover = extractValuePreceededByString(line, "#COVER:");
 
         for (String part : lineParts) {
             part = part.trim();
-            if(part.equals("-1") || part.equals("-2") || part.isEmpty()){continue;}
-            //capture support
-            if(part.startsWith("#SUP:")){
-                String[] supSplit = part.split(":");
-                sup = Integer.parseInt(supSplit[1]);
-            }
-            else if(part.startsWith("#COVER:")){
-                String[] coverSplit = part.split(":");
-                cover = Integer.parseInt(coverSplit[1]);
-            }
-            else{
+            if(!part.equals("-1") && !part.equals("-2") && !part.isEmpty()){
                 arr.add(Integer.parseInt(part));
             }
         }

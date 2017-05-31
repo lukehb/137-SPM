@@ -21,6 +21,10 @@ public class SPMFParserTest {
 
     private static final String testLine = "42241 4217 42249 5479 4218 5509  #SUP:24 #COVER:120";
 
+    private static final String testLineNoSup = "42241 4217 42249 5479 4218 5509";
+
+    private static final String testLineWithSpaces = "42241 4217 42249 5479 4218 5509  #SUP: 24 #COVER: 120";
+
     @Test
     public void testParseSPMFOutput() throws Exception {
 
@@ -36,8 +40,23 @@ public class SPMFParserTest {
     }
 
     @Test
+    public void testParsePatternNoSup() throws Exception{
+        SequentialPattern pattern = SPMFParser.parsePattern(testLineNoSup, " ");
+        int[] expected = new int[]{42241,4217,42249,5479,4218,5509};
+        Assert.assertArrayEquals(expected,pattern.getSequence());
+    }
+
+    @Test
     public void testParseSupportedPattern() throws Exception{
         SequentialPattern pattern = SPMFParser.parsePattern(testLine, " ");
+        int[] expected = new int[]{42241,4217,42249,5479,4218,5509};
+        Assert.assertArrayEquals(expected,pattern.getSequence());
+        Assert.assertTrue(pattern.getSupport() == 24);
+    }
+
+    @Test
+    public void testParseSupportedPatternWithSpaces() throws Exception{
+        SequentialPattern pattern = SPMFParser.parsePattern(testLineWithSpaces, " ");
         int[] expected = new int[]{42241,4217,42249,5479,4218,5509};
         Assert.assertArrayEquals(expected,pattern.getSequence());
         Assert.assertTrue(pattern.getSupport() == 24);
