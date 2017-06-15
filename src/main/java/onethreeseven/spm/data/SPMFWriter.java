@@ -43,4 +43,5 @@ public class SPMFWriter extends AbstractWriter<int[][]> {
         }
         return true;
     }
+
 }
