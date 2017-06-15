@@ -12,7 +12,7 @@ buildscript {
 apply plugin: 'com.jfrog.bintray'
 
 group 'onethreeseven'
-version '0.0.5'
+version '0.0.6'
 
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -65,23 +65,14 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     classifier "sources"
 }
 
-task uberJar(type: Jar, dependsOn: [':compileJava']) {
-    from files(sourceSets.main.output.classesDir)
-    from configurations.runtime.asFileTree.files.collect { zipTree(it) }
-    classifier "fat"
-    manifest {
-        attributes("Implementation-Title": project.name,
-                "Implementation-Version": version,
-                'Built-By': System.getProperty('user.name'),
-                'Built-Date': new Date(),
-                'Built-JDK': System.getProperty('java.version'),
-                "Main-Class": mainClassName)
-    }
+task javadocJar(type: Jar, dependsOn: 'javadoc') {
+    from javadoc.destinationDir
+    classifier = 'javadoc'
 }
 
 artifacts {
     archives sourcesJar
-    archives uberJar
+    archives javadocJar
 }
 
 publishing {
@@ -92,13 +83,7 @@ publishing {
             artifactId project.name
             version version
             artifact sourcesJar
-        }
-        MyFatJar(MavenPublication) {
-            from components.java
-            groupId group
-            artifactId project.name
-            version version
-            artifact uberJar
+            artifact javadocJar
         }
     }
 }
@@ -107,7 +92,7 @@ publishing {
 bintray {
     user = project.hasProperty('bintrayUser') ? project.bintrayUser : System.getenv('BINTRAY_USER')
     key = project.hasProperty('bintrayKey') ? project.bintrayKey : System.getenv('BINTRAY_KEY')
-    publications = ['MyFatJar']
+    publications = ['MyPublication']
     publish = true //If version should be auto published after an upload
     pkg {
         repo = '137-SPM'

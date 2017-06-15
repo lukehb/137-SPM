@@ -127,7 +127,15 @@ public class SPMFParser {
                 }
             }
             String candidateSupStr = line.substring(startIdx, endIdx).trim();
-            extractedValue = Integer.parseInt(candidateSupStr);
+            if(candidateSupStr.isEmpty()){
+                return extractedValue;
+            }
+            try{
+                extractedValue = Integer.parseInt(candidateSupStr);
+            }catch (NumberFormatException e){
+                e.printStackTrace();
+            }
+
         }
         return extractedValue;
     }
