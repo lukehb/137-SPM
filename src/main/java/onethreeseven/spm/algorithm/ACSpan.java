@@ -28,4 +28,8 @@ public class ACSpan extends AbstractContiguousSPM {
         }
     }
 
+    @Override
+    public String toString() {
+        return "ACSpan(All-Contiguous)";
+    }
 }

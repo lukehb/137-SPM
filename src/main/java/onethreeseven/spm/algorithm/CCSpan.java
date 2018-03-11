@@ -33,4 +33,9 @@ public class CCSpan extends AbstractContiguousSPM {
         }
     }
 
+    @Override
+    public String toString() {
+        return "CCSpan(Closed-Contiguous)";
+    }
+
 }

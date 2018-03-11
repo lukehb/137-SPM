@@ -76,7 +76,9 @@ public class TrieIterator<T> implements Iterator<ArrayList<T>> {
 
     /**
      * Un-parent a node in the current pattern.
+     * @param path The path in the Trie to go down.
      * @param childIdx The index of the node to un-parent.
+     * @return True if un-parenting happened.
      */
     public boolean unParent(T[] path, int childIdx){
         if(childIdx == 0){

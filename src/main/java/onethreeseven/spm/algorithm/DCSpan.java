@@ -15,7 +15,19 @@ import java.util.*;
  * to the most covered set that meets the specified redundancy requirements.
  * @author Luke Bermingham
  */
-public class DCSpan {
+public class DCSpan implements SPMAlgorithm {
+
+    @Override
+    public void run(SPMParameters parameters, File outFile) {
+        List<SequentialPattern> allContiguousPatterns = new ACSpan().run(parameters.getSequences(), parameters.getMinSup());
+        run(parameters.getSequences(), allContiguousPatterns, parameters.getMaxRedund(), outFile);
+    }
+
+    @Override
+    public Collection<SequentialPattern> run(SPMParameters parameters) {
+        List<SequentialPattern> allContiguousPatterns = new ACSpan().run(parameters.getSequences(), parameters.getMinSup());
+        return run(parameters.getSequences(), allContiguousPatterns, parameters.getMaxRedund());
+    }
 
     private interface PatternProcessor{
         void process(CoveredSequentialPattern pattern);
@@ -191,6 +203,11 @@ public class DCSpan {
         double redundancy = redundantPairs/totalPairs;
         return redundancy <= maxRedundancy;
 
+    }
+
+    @Override
+    public String toString() {
+        return "DCSpan(Distinct-Contiguous)";
     }
 
 }

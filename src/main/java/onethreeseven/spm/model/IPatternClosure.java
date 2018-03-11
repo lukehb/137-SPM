@@ -1,7 +1,7 @@
 package onethreeseven.spm.model;
 
 /**
- * Pattern closures, so far this contract is only used by {@link onethreeseven.spm.algorithm.CCSpan}.
+ * Pattern closures. I.e. the rule used to discard patterns.
  * @author Luke Bermingham
  */
 public interface IPatternClosure {

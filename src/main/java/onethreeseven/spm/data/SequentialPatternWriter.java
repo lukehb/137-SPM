@@ -1,13 +1,10 @@
 package onethreeseven.spm.data;
 
-import onethreeseven.common.data.AbstractWriter;
 import onethreeseven.spm.model.SequentialPattern;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 /**
  * Writes {@link SequentialPattern} to file.
@@ -16,7 +13,6 @@ import java.util.logging.Logger;
 public class SequentialPatternWriter {
 
     private BufferedWriter bw;
-    private static final Logger log = Logger.getLogger(SequentialPatternWriter.class.getSimpleName());
 
     public SequentialPatternWriter(File file){
         try {
@@ -28,7 +24,7 @@ public class SequentialPatternWriter {
 
     public void write(SequentialPattern pattern){
         if(bw == null){
-            log.severe("Cannot write because buffered writer is null, try making a new class.");
+            System.err.println("Cannot write because buffered writer is null, try making a new class.");
         }
         try {
             bw.write(pattern.toString());

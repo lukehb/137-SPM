@@ -28,4 +28,9 @@ public class MCSpan extends AbstractContiguousSPM {
         }
     }
 
+    @Override
+    public String toString() {
+        return "MCSpan(Max-Contiguous)";
+    }
+
 }

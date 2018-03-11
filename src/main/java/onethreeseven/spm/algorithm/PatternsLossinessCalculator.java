@@ -5,7 +5,6 @@ import onethreeseven.spm.model.ContiguousSubSeqIterator;
 import onethreeseven.spm.model.Trie;
 import java.io.File;
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 /**
  * Given two pattern outputs, A and B, where A is a subset of B
@@ -13,8 +12,6 @@ import java.util.logging.Logger;
  * @author Luke Bermingham
  */
 public class PatternsLossinessCalculator {
-
-    private static final Logger log = Logger.getLogger(PatternsLossinessCalculator.class.getSimpleName());
 
     /**
      *

@@ -4,6 +4,7 @@ import onethreeseven.spm.data.SequentialPatternWriter;
 import onethreeseven.spm.model.*;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ import java.util.List;
  *
  * @author Luke Bermingham
  */
-public abstract class AbstractContiguousSPM {
+public abstract class AbstractContiguousSPM implements SPMAlgorithm {
 
     /////////////////
     //INTERNAL METHODS
@@ -107,6 +108,17 @@ public abstract class AbstractContiguousSPM {
     //PUBLIC METHODS
     //////////////////
 
+
+    @Override
+    public void run(SPMParameters parameters, File outFile) {
+        run(parameters.getSequences(), parameters.getMinSup(), outFile);
+    }
+
+    @Override
+    public Collection<SequentialPattern> run(SPMParameters parameters) {
+        return run(parameters.getSequences(), parameters.getMinSup());
+    }
+
     public Trie<Integer> populateTrie(int[][] sequences, int minSupAbs){
         if(sequences.length == 0){
             throw new IllegalArgumentException(
@@ -119,6 +131,7 @@ public abstract class AbstractContiguousSPM {
      * Run CCSpan and write a list.
      * @param sequences The sequence database
      * @param minSupAbs The minimum absolute support.
+     * @return The contiguous sequential patterns.
      */
     public List<SequentialPattern> run(int[][] sequences, int minSupAbs){
         final Trie<Integer> patterns = populateTrie(sequences, minSupAbs);

@@ -1,59 +1,96 @@
-buildscript {
+plugins {
+    id "com.jfrog.bintray" version "1.7.3"
+}
+
+group 'onethreeseven'
+version '0.0.1-SNAPSHOT'
+ext.moduleName = 'onethreeseven.spm'
+
+
+allprojects {
     repositories {
         jcenter()
         mavenCentral()
     }
-    dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-    }
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+    apply plugin: 'java'
+    apply plugin: 'idea'
 }
-apply plugin: 'com.jfrog.bintray'
-
-group 'onethreeseven'
-version '0.0.6'
-
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
-apply plugin: 'java'
-apply plugin: 'application'
-apply plugin: 'idea'
-
-idea {
-    module {
-        downloadJavadoc = true
-        downloadSources = true
-    }
-}
-
-mainClassName = "onethreeseven.spm.Main"
-sourceCompatibility = 1.8
 
 repositories {
-    mavenCentral()
-    maven { url 'https://dl.bintray.com/lukehb/137-collections' } //some custom collections we use
-    maven { url 'https://dl.bintray.com/lukehb/137-common' } //some custom utilities we use
+    //maven{url 'https://dl.bintray.com/lukehb/137-geo'} //geography module hosted on bintray
     maven { url 'https://github.com/lukehb/137-jars/raw/master/repository' } //spmf
+    mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile group: 'onethreeseven', name: 'collections', version: '0.0.1'
-    compile group: 'onethreeseven', name: 'common', version: '0.0.3'
-    compile group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
-    compile group: 'com.beust', name: 'jcommander', version: '1.48'
+
+    compile group: 'onethreeseven', name: 'collections', version: '0.0.2'
+    compile group: 'onethreeseven', name: 'common', version: '0.0.5-SNAPSHOT'
+
+    //plugin architecture
+    compile group: 'onethreeseven', name: 'trajsuitePlugin', version: '0.0.1-SNAPSHOT'
+
+    //jcli
+    compile group: 'onethreeseven', name: 'jclimod', version: '0.0.1-SNAPSHOT'
+
+    //spmf
     compile group: 'ca.pfv.spmf', name: 'spmf', version: '2.1.2'
+
+    //geo
+    //compile group: 'onethreeseven', name: 'geo', version: '0.0.4'
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+compileJava {
+    inputs.property("moduleName", moduleName)
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+        ]
+        classpath = files()
+    }
+}
+
+compileTestJava {
+    inputs.property("moduleName", moduleName)
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+                '--add-modules', 'junit',
+                '--add-reads', "$moduleName=junit",
+                '--patch-module', "$moduleName=" + files(sourceSets.test.java.srcDirs).asPath,
+        ]
+        classpath = files()
+    }
+}
+
+test {
+    inputs.property("moduleName", moduleName)
+    doFirst {
+        jvmArgs = [
+                '--module-path', classpath.asPath,
+                '--add-modules', 'ALL-MODULE-PATH',
+                '--add-reads', "$moduleName=junit",
+                '--patch-module', "$moduleName=" + files(sourceSets.test.java.outputDir).asPath,
+        ]
+        classpath = files()
+    }
 }
 
 jar {
+    inputs.property("moduleName", moduleName)
     manifest {
-        attributes("Implementation-Title": project.name,
+        attributes(
+                'Automatic-Module-Name': moduleName,
+                "Implementation-Title": project.name,
                 "Implementation-Version": version,
                 'Built-By': System.getProperty('user.name'),
                 'Built-Date': new Date(),
-                'Built-JDK': System.getProperty('java.version'),
-                "Main-Class": mainClassName)
+                'Built-JDK': System.getProperty('java.version'))
     }
 }
 
@@ -62,18 +99,31 @@ jar.dependsOn(test)
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.allSource
-    classifier "sources"
 }
 
-task javadocJar(type: Jar, dependsOn: 'javadoc') {
-    from javadoc.destinationDir
-    classifier = 'javadoc'
+javadoc{
+    options.addStringOption('-module-path', classpath.asPath)
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = "javadoc"
+    from 'build/docs/javadoc'
 }
 
 artifacts {
+    archives jar
     archives sourcesJar
     archives javadocJar
 }
+
+idea {
+    module {
+        inheritOutputDirs = true
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
 
 publishing {
     publications {

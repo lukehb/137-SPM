@@ -1,22 +1,16 @@
 package onethreeseven.spm.data;
 
-import onethreeseven.collections.IntArray;
-
 import java.io.*;
-import java.util.Arrays;
-import java.util.logging.Logger;
 
 /**
  * Reads the SPMF format and makes each pattern available through iteration.
  * @see <a href="http://www.philippe-fournier-viger.com/spmf/index.php?link=developers.php">SPMF</a>
  * for details on the file format.
- * Note: {@link onethreeseven.spm.algorithm.GraspMiner} outputs cover, which this also supports.
  * @author Luke Bermingham
  */
 public class SPMFParserIterator {
 
     private static final String delimiter = " ";
-    private static final Logger logger = Logger.getLogger(SPMFParserIterator.class.getSimpleName());
 
     private BufferedReader reader;
 
@@ -29,7 +23,7 @@ public class SPMFParserIterator {
         try{
             this.reader = new BufferedReader(new FileReader(patternFile));
         }catch (FileNotFoundException e){
-            logger.severe("Could not find spmf output file to parseSequences: " + e.getMessage());
+            System.err.println("Could not find spmf output file to parseSequences: " + e.getMessage());
         }
 
     }

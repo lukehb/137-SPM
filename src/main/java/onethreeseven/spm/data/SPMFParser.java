@@ -7,7 +7,6 @@ import onethreeseven.spm.model.SequentialPattern;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * For parsing output from SPMF sequential patterns.
@@ -22,7 +21,6 @@ public class SPMFParser {
         void parseLine(String line);
     }
 
-    private static final Logger logger = Logger.getLogger(SPMFParser.class.getSimpleName());
     private final String delimiter;
 
     public SPMFParser(){
@@ -37,7 +35,7 @@ public class SPMFParser {
         try {
             return parseSequences(new BufferedReader(new FileReader(file)));
         } catch (FileNotFoundException e) {
-            logger.severe("Could not find spmf output file to parseSequences: " + e.getMessage());
+            System.err.println("Could not find spmf output file to parseSequences: " + e.getMessage());
         }
         return new int[][]{};
     }
@@ -84,7 +82,7 @@ public class SPMFParser {
                 keepReading = line != null;
 
             } catch (IOException e) {
-                logger.severe("Could not read spmf file: " + e.getMessage());
+                System.err.println("Could not read spmf file: " + e.getMessage());
             }
         }
         try {

@@ -143,7 +143,7 @@ public class Trie<T> {
      * and if it doesn't then remove it from being stored.
      * @param sequence The sequence to test.
      * @param minSup The minimum support to meet.
-     * @return
+     * @return True if it exists with minimum support.
      */
     public boolean supersede(T[] sequence, int minSup){
         ArrayList<TrieNode> path = new ArrayList<>(sequence.length);
@@ -239,6 +239,7 @@ public class Trie<T> {
     }
 
     /**
+     * @param showSubPatterns Do you want sub-patterns or not?
      * @return An iterator for all the paths (and their subsets) in this Trie.
      */
     public TrieIterator<T> getPatternIterator(boolean showSubPatterns){
