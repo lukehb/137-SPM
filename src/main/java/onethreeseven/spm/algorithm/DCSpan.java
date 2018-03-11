@@ -1,6 +1,7 @@
 package onethreeseven.spm.algorithm;
 
 import onethreeseven.collections.Range;
+import onethreeseven.spm.data.SPMFParser;
 import onethreeseven.spm.data.SequentialPatternWriter;
 import onethreeseven.spm.model.CoveredSequentialPattern;
 import onethreeseven.spm.model.SequentialPattern;
@@ -8,6 +9,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -19,8 +21,16 @@ public class DCSpan implements SPMAlgorithm {
 
     @Override
     public void run(SPMParameters parameters, File outFile) {
-        List<SequentialPattern> allContiguousPatterns = new ACSpan().run(parameters.getSequences(), parameters.getMinSup());
-        run(parameters.getSequences(), allContiguousPatterns, parameters.getMaxRedund(), outFile);
+        String filename = outFile.getName();
+        String path = Paths.get(outFile.toURI()).getParent().toAbsolutePath().toString();
+        File acspanFile = new File(Paths.get(path, "acspan_" + filename).toAbsolutePath().toString());
+        new ACSpan().run(parameters.getSequences(), parameters.getMinSup(), acspanFile);
+
+        //load the ac-span patterns into memory...if possible
+        SPMFParser parser = new SPMFParser();
+        List<SequentialPattern> patterns = parser.parsePatterns(acspanFile);
+
+        run(parameters.getSequences(), patterns, parameters.getMaxRedund(), outFile);
     }
 
     @Override

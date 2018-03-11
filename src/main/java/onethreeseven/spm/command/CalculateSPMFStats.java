@@ -14,7 +14,7 @@ import java.io.File;
  * Gets the stats of an SPMF sequence database.
  * @author Luke Bermingham
  */
-public class CalculateSPMFStatsCommand extends CLICommand{
+public class CalculateSPMFStats extends CLICommand{
 
     @Parameter(names = {"-i", "--in"}, description= "The input SPMF file.", converter = FileConverter.class)
     private File in;

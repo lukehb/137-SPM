@@ -13,8 +13,9 @@ import java.io.File;
 public class SPMParameters {
     private final File spmfFile;
     private final int[][] sequences;
-    private final int minSup;
-    private final double maxRedund;
+    private int minSup;
+    private double maxRedund;
+    private int topK;
 
     public SPMParameters(int[][] sequences, int minSup) {
         this.sequences = sequences;
@@ -22,24 +23,6 @@ public class SPMParameters {
         this.maxRedund = 0;
         this.spmfFile = null;
     }
-
-    public SPMParameters(int[][] sequences, double maxRedund){
-        this.sequences = sequences;
-        this.minSup = 0;
-        this.maxRedund = maxRedund;
-        this.spmfFile = null;
-    }
-
-    public SPMParameters(File spmfFile, double maxRedund){
-        if(!FileUtil.fileOkayToRead(spmfFile)){
-            throw new IllegalArgumentException("Cannot read this spmf file: " + spmfFile);
-        }
-        this.spmfFile = spmfFile;
-        this.minSup = 0;
-        this.maxRedund = maxRedund;
-        this.sequences = null;
-    }
-
 
     public SPMParameters(File spmfFile, int minSup){
         if(!FileUtil.fileOkayToRead(spmfFile)){
@@ -74,6 +57,22 @@ public class SPMParameters {
             return out;
         }
         return spmfFile;
+    }
+
+    public void setMinSup(int minSup) {
+        this.minSup = minSup;
+    }
+
+    public void setMaxRedund(double maxRedund) {
+        this.maxRedund = maxRedund;
+    }
+
+    public int getTopK() {
+        return topK;
+    }
+
+    public void setTopK(int topK) {
+        this.topK = topK;
     }
 
     public int getMinSup() {

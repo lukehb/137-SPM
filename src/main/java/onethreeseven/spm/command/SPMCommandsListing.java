@@ -12,8 +12,9 @@ public class SPMCommandsListing extends AbstractCommandsListing {
     @Override
     protected CLICommand[] createCommands(JCommander jc, Object... args) {
         return new CLICommand[]{
-                new MineSequentialPatternsCommand(),
-                new CalculateSPMFStatsCommand()
+                new MineSequentialPatterns(),
+                new CalculateSPMFStats(),
+                new LoadSequences()
         };
     }
 }

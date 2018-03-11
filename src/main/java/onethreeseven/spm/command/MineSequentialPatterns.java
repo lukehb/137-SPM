@@ -18,7 +18,7 @@ import java.util.*;
  * Command to populateTrie the CC-Span algorithm.
  * @author Luke Bermingham
  */
-public class MineSequentialPatternsCommand extends CLICommand {
+public class MineSequentialPatterns extends CLICommand {
 
     private static final Map<String, SPMAlgorithm> supportedAlgos = new HashMap<>();
     static {
@@ -53,7 +53,7 @@ public class MineSequentialPatternsCommand extends CLICommand {
     private SPMParameters params = null;
 
     @Parameter(names = {"-q", "--quiet"}, description = "If true, outputs some extra information like total running time.")
-    private boolean quiet = true;
+    private boolean quiet = false;
 
     @Parameter(names = {"-r", "--maxRedund"}, description = "If using DCSPAN, this is the maximum allowable redundancy " +
             "in each output pattern, between 0 and 1. Note, for other algorithms this parameter has no effect.")
@@ -87,39 +87,36 @@ public class MineSequentialPatternsCommand extends CLICommand {
         if(algoName == null || algoName.isEmpty()){
             System.err.println("SPM algorithm name must be non-null, try -a ccspan");
             return false;
-        }else if(supportedAlgos.containsKey(algoName)){
+        }else if(!supportedAlgos.containsKey(algoName)){
             System.err.println("Unsupported spm algorithm, was passed: " + algoName);
             System.err.println("The following algorithm names are supported as input parameters: ");
-            for (SPMAlgorithm spmAlgorithm : supportedAlgos.values()) {
-                System.err.println(spmAlgorithm.toString());
+            for (String spmAlgorithm : supportedAlgos.keySet()) {
+                System.err.println(spmAlgorithm);
             }
             return false;
         }
 
         algo = supportedAlgos.get(algoName);
         int[][] seqDb = (in == null) ? getSelectedSequences() : null;
+        if(seqDb == null){
+            System.err.println("There was no selected sequences database of integers. Please select a int[][] next time.");
+            return false;
+        }
 
-        if(algo instanceof DCSpan){
-            if(seqDb != null){
-                params = new SPMParameters(seqDb, maxRedundancy);
-            }else if(in != null){
-                params = new SPMParameters(in, maxRedundancy);
-            }
+        if(in != null){
+            params = new SPMParameters(in, minSup);
+        }else{
+            params = new SPMParameters(seqDb, minSup);
         }
-        //all other algorithms
-        else{
-            if(seqDb != null){
-                params = new SPMParameters(seqDb, minSup);
-            }else if(in != null){
-                params = new SPMParameters(in, minSup);
-            }
-        }
+        params.setMaxRedund(maxRedundancy);
+        params.setTopK(topK);
+        
         return true;
     }
 
     protected int[][] getSelectedSequences(){
 
-        ArrayList<int[]> seqs = new ArrayList<>();
+        int[][] seqs = null;
 
         ServiceLoader<EntitySupplier> loader = ServiceLoader.load(EntitySupplier.class);
 
@@ -129,30 +126,30 @@ public class MineSequentialPatternsCommand extends CLICommand {
                     return false;
                 }
                 Object model = wrappedEntity.getModel();
-                return model instanceof int[];
+                return model instanceof int[][];
             });
 
             for (WrappedEntity wrappedEntity : selectedSeqs.values()) {
                 Object model = wrappedEntity.getModel();
-                if(model instanceof int[]){
-                    seqs.add((int[]) model);
+                if(model instanceof int[][]){
+                    seqs = (int[][]) model;
+                    //just take the first selected int[][]
+                    break;
                 }
             }
 
         }
 
-        int[][] out = new int[seqs.size()][];
-        seqs.toArray(out);
-        return out;
+        return seqs;
     }
 
     @Override
     protected void resetParametersAfterRun(Class clazz) {
         super.resetParametersAfterRun(clazz);
-        quiet = true;
         minSup = 10;
         topK = 10;
         maxRedundancy = 0.5;
+        quiet = false;
     }
 
     @Override

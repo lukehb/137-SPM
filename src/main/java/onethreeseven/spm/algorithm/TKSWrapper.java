@@ -24,7 +24,7 @@ public class TKSWrapper extends SPMFAlgoWrapper {
 
         //pass minsup as top-k (they are both ints)
         try {
-            algo.runAlgorithm(parameters.getSpmfFile().getAbsolutePath(), outFile.getAbsolutePath(), parameters.getMinSup());
+            algo.runAlgorithm(parameters.getSpmfFile().getAbsolutePath(), outFile.getAbsolutePath(), parameters.getTopK());
         } catch (IOException e) {
             e.printStackTrace();
         }
