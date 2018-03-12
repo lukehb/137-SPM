@@ -3,7 +3,7 @@ package onethreeseven.spm.algorithm;
 import onethreeseven.spm.model.SequentialPattern;
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Test {@link DCSpan}.
@@ -28,9 +28,11 @@ public class DCSpanTest {
 
         final int minSup = 2;
 
-        List<SequentialPattern> superset = new ACSpan().run(seqDb, minSup);
-        System.out.println("Done mining all patterns.");
-        List<SequentialPattern> subset = new DCSpan().run(seqDb, superset, 0);
+        SPMParameters params = new SPMParameters(seqDb, minSup);
+        params.setMaxRedund(0);
+
+        Collection<SequentialPattern> subset = new DCSpan().run(params);
+
         System.out.println("Subset patterns...");
 
         for (SequentialPattern sequentialPattern : subset) {

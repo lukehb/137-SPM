@@ -6,7 +6,7 @@ import onethreeseven.trajsuitePlugin.model.TransactionProcessor;
 import onethreeseven.trajsuitePlugin.view.MenuSupplier;
 
 module onethreeseven.spm{
-    requires spmf;
+    //requires spmf;
     requires onethreeseven.jclimod;
     requires jcommander;
     requires onethreeseven.collections;

@@ -5,10 +5,8 @@ import onethreeseven.spm.data.SPMFParser;
 import onethreeseven.spm.data.SequentialPatternWriter;
 import onethreeseven.spm.model.CoveredSequentialPattern;
 import onethreeseven.spm.model.SequentialPattern;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -17,54 +15,87 @@ import java.util.*;
  * to the most covered set that meets the specified redundancy requirements.
  * @author Luke Bermingham
  */
-public class DCSpan implements SPMAlgorithm {
+public class DCSpan extends SPMAlgorithm {
 
     @Override
-    public void run(SPMParameters parameters, File outFile) {
-        String filename = outFile.getName();
-        String path = Paths.get(outFile.toURI()).getParent().toAbsolutePath().toString();
-        File acspanFile = new File(Paths.get(path, "acspan_" + filename).toAbsolutePath().toString());
-        new ACSpan().run(parameters.getSequences(), parameters.getMinSup(), acspanFile);
+    protected Collection<SequentialPattern> runImpl(SPMParameters params) {
+        if(params.getOutFile() != null){
+            File outFile = params.getOutFile();
 
-        //load the ac-span patterns into memory...if possible
-        SPMFParser parser = new SPMFParser();
-        List<SequentialPattern> patterns = parser.parsePatterns(acspanFile);
+            //String filename = outFile.getName();
+            //String path = Paths.get(outFile.toURI()).getParent().toAbsolutePath().toString();
+            //File acspanFile = new File(Paths.get(path, "acspan_" + filename).toAbsolutePath().toString());
 
-        run(parameters.getSequences(), patterns, parameters.getMaxRedund(), outFile);
+            SPMParameters acSpanParams = new SPMParameters(params.getSequences(), params.getMinSup());
+            //acSpanParams.setOutFile(acspanFile);
+
+            Collection<SequentialPattern> patterns = new ACSpan().run(acSpanParams);
+
+            //load the ac-span patterns into memory...if possible
+//            SPMFParser parser = new SPMFParser();
+//            List<SequentialPattern> patterns = parser.parsePatterns(acspanFile);
+
+            run(params.getSequences(), (List<SequentialPattern>) patterns, params.getMaxRedund(), outFile);
+            return null;
+        }
+        else{
+            Collection<SequentialPattern> patterns = new ACSpan().run(params);
+            return run(params.getSequences(), (List<SequentialPattern>) patterns, params.getMaxRedund());
+        }
     }
 
     @Override
-    public Collection<SequentialPattern> run(SPMParameters parameters) {
-        List<SequentialPattern> allContiguousPatterns = new ACSpan().run(parameters.getSequences(), parameters.getMinSup());
-        return run(parameters.getSequences(), allContiguousPatterns, parameters.getMaxRedund());
+    public String getSimpleName() {
+        return "dcspan";
+    }
+
+    @Override
+    public String getPatternType() {
+        return "Distinct Contiguous";
     }
 
     private interface PatternProcessor{
         void process(CoveredSequentialPattern pattern);
     }
 
-    public List<SequentialPattern> run(int[][] seqDb, List<SequentialPattern> patterns, double maxRedundancy){
+    protected List<SequentialPattern> run(int[][] seqDb, List<SequentialPattern> patterns, double maxRedundancy){
         ArrayList<SequentialPattern> out = new ArrayList<>();
         run(seqDb, patterns, maxRedundancy, out::add);
         return out;
     }
 
-    public void run(int[][] seqDb, List<SequentialPattern> patterns, double maxRedundancy, File outFile){
+    protected void run(int[][] seqDb, List<SequentialPattern> patterns, double maxRedundancy, File outFile){
 
         SequentialPatternWriter writer = new SequentialPatternWriter(outFile);
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        if(outFile.setWritable(true)){
+            try {
+                fw  = new FileWriter(outFile, true);
+                bw = new BufferedWriter(fw);
+                PatternProcessor processor = writer::write;
+                run(seqDb, patterns, maxRedundancy, processor);
+                bw.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }finally {
+                try{
+                    if(fw != null){
+                        fw.close();
+                    }
+                    if(bw != null){
+                        bw.close();
+                    }
 
-        try {
-            final BufferedWriter bw = new BufferedWriter(new FileWriter(outFile, true));
-            PatternProcessor processor = writer::write;
-            run(seqDb, patterns, maxRedundancy, processor);
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+                    System.gc();
+                }catch (IOException ex){
+                    ex.printStackTrace();
+                }
+            }
         }
     }
 
     private void run(int[][] seqDb, List<SequentialPattern> patterns, double maxRedundancy, PatternProcessor processor){
-
         //stores cover associated with each pair
         final HashMap<Range, Integer> coverMap = createCoverMap(seqDb);
         seqDb = null;
@@ -77,7 +108,7 @@ public class DCSpan implements SPMAlgorithm {
         patterns.clear();
 
         //find and output the most covered pattern, remove it, then do this repeatedly
-        while(!coveredPatterns.isEmpty()){
+        while(!coveredPatterns.isEmpty() && isRunning.get()){
 
             Map.Entry<Integer, CoveredSequentialPattern> bestEntry = null;
             //find most covered pattern
@@ -217,7 +248,7 @@ public class DCSpan implements SPMAlgorithm {
 
     @Override
     public String toString() {
-        return "DCSpan(Distinct-Contiguous)";
+        return getSimpleName() + "(" + getPatternType() + ")";
     }
 
 }

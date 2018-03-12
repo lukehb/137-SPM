@@ -22,17 +22,17 @@ public class MineSequentialPatterns extends CLICommand {
 
     private static final Map<String, SPMAlgorithm> supportedAlgos = new HashMap<>();
     static {
-        supportedAlgos.put("cmspam", new CMSpamWrapper());
-        supportedAlgos.put("cmspade", new CMSpadeWrapper());
-        supportedAlgos.put("vmsp", new VMSPWrapper());
-        supportedAlgos.put("prefixspan", new PrefixSpanWrapper());
-        supportedAlgos.put("acspan", new ACSpan());
-        supportedAlgos.put("mcspan", new MCSpan());
-        supportedAlgos.put("ccspan", new CCSpan());
-        supportedAlgos.put("dcspan", new DCSpan());
-        supportedAlgos.put("clospan", new CloSpanWrapper());
-        supportedAlgos.put("cmclasp", new CMClaspWrapper());
-        supportedAlgos.put("tks", new TKSWrapper());
+        //supportedAlgos.put(new CMSpamWrapper().getSimpleName(), new CMSpamWrapper());
+        //supportedAlgos.put(new CMSpadeWrapper().getSimpleName(), new CMSpadeWrapper());
+        //supportedAlgos.put(new VMSPWrapper().getSimpleName(), new VMSPWrapper());
+        //supportedAlgos.put(new PrefixSpanWrapper().getSimpleName(), new PrefixSpanWrapper());
+        supportedAlgos.put(new ACSpan().getSimpleName(), new ACSpan());
+        supportedAlgos.put(new MCSpan().getSimpleName(), new MCSpan());
+        supportedAlgos.put(new CCSpan().getSimpleName(), new CCSpan());
+        supportedAlgos.put(new DCSpan().getSimpleName(), new DCSpan());
+        //supportedAlgos.put(new CloSpanWrapper().getSimpleName(), new CloSpanWrapper());
+        //supportedAlgos.put(new CMClaspWrapper().getSimpleName(), new CMClaspWrapper());
+        //supportedAlgos.put(new TKSWrapper().getSimpleName(), new TKSWrapper());
     }
 
     @Parameter(names = {"-k", "--topK"}, description = "The top-k patterns to keep. Only relevant if using -a tks")
@@ -67,23 +67,30 @@ public class MineSequentialPatterns extends CLICommand {
     @Override
     protected boolean parametersValid() {
 
-        if(topK < 1){
-            System.err.println("Top-k must be greater than 0.");
-            return false;
-        }
-        if(minSup < 1){
-            System.err.println("Support must be greater than 0.");
-            return false;
-        }
         //if we have a file check if it is okay to read
         if(in != null && !FileUtil.fileOkayToRead(in)){
             System.err.println("Input sequences file cannot be read.");
             return false;
         }
-        if(maxRedundancy < 0 || maxRedundancy > 1){
-            System.err.println("Maximum redundancy must be between 0 and 1.");
+
+        int[][] seqDb = (in == null) ? getSelectedSequences() : null;
+        if(seqDb == null){
+            System.err.println("There was no selected sequences database of integers. Please select a int[][] next time.");
             return false;
         }
+        if(in != null){
+            params = new SPMParameters(in, minSup);
+        }else{
+            params = new SPMParameters(seqDb, minSup);
+        }
+        params.setMaxRedund(maxRedundancy);
+        params.setTopK(topK);
+        params.setOutFile(out);
+
+        if(!params.areParametersValid()){
+            return false;
+        }
+
         if(algoName == null || algoName.isEmpty()){
             System.err.println("SPM algorithm name must be non-null, try -a ccspan");
             return false;
@@ -97,20 +104,7 @@ public class MineSequentialPatterns extends CLICommand {
         }
 
         algo = supportedAlgos.get(algoName);
-        int[][] seqDb = (in == null) ? getSelectedSequences() : null;
-        if(seqDb == null){
-            System.err.println("There was no selected sequences database of integers. Please select a int[][] next time.");
-            return false;
-        }
 
-        if(in != null){
-            params = new SPMParameters(in, minSup);
-        }else{
-            params = new SPMParameters(seqDb, minSup);
-        }
-        params.setMaxRedund(maxRedundancy);
-        params.setTopK(topK);
-        
         return true;
     }
 
@@ -163,7 +157,7 @@ public class MineSequentialPatterns extends CLICommand {
 
             //write patterns to file
             if(writingOutput){
-                algo.run(params, out);
+                algo.run(params);
             }
             //storing patterns using a service
             else{
@@ -176,11 +170,17 @@ public class MineSequentialPatterns extends CLICommand {
                 String layername = algo.toString() + "_" + patterns.size() + "patterns";
 
                 for (SequentialPattern pattern : patterns) {
+                    if(!this.isRunning.get()){
+                        return false;
+                    }
                     transaction.add(layername, IdGenerator.nextId(), pattern);
                 }
 
                 ServiceLoader<TransactionProcessor> services = ServiceLoader.load(TransactionProcessor.class);
                 for (TransactionProcessor service : services) {
+                    if(!this.isRunning.get()){
+                        return false;
+                    }
                     service.process(transaction);
                 }
 
@@ -194,6 +194,14 @@ public class MineSequentialPatterns extends CLICommand {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        if(algo != null){
+            algo.stop();
+        }
     }
 
     @Override

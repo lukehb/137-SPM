@@ -1,6 +1,5 @@
 package onethreeseven.spm.experiments;
 
-import ca.pfv.spmf.algorithms.sequentialpatterns.spam.AlgoTKS;
 import onethreeseven.common.util.FileUtil;
 import onethreeseven.spm.algorithm.*;
 import onethreeseven.spm.data.SPMFParser;
@@ -8,17 +7,16 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Use {@link onethreeseven.spm.algorithm.ProtoMiner} to mine SPMF database.
+ * Example of various pattern mining approaches
  * @author Luke Bermingham
  */
 public class MinePatternsContiguous {
 
     private static final String filename = "tdrive";
     private static final File inFile = new File(FileUtil.makeAppDir("spmf-files"), filename + ".txt");
-    private static final int topk = 797;
 
     private enum SPClosure {
-        ALL, CLOSED, MAX, DISTINCT, TOPK
+        ALL, CLOSED, MAX, DISTINCT
     }
 
     private static File makeOutFile(SPClosure closure, int minSupAbs, double maxRedundancy){
@@ -26,7 +24,7 @@ public class MinePatternsContiguous {
         int redund = (int) (maxRedundancy * 100);
 
         String outFileName = filename + "_" + closure.name() +
-                ((closure == SPClosure.TOPK && topk > 0) ? "_" + topk : "_minsup_" + minSupAbs) +
+                "_minsup_" + minSupAbs +
                 (closure == SPClosure.DISTINCT ? "redund_" + redund : "") +  ".txt";
         return new File(FileUtil.makeAppDir("contig_patterns/" + filename), outFileName);
     }
@@ -64,18 +62,22 @@ public class MinePatternsContiguous {
         File outFile = makeOutFile(selectedPatternClosure, minSupAbs, maxRedundancy);
         long startTime = System.currentTimeMillis();
 
+        SPMParameters parameters = new SPMParameters(seqDB, minSupAbs);
+        parameters.setMaxRedund(maxRedundancy);
+        parameters.setOutFile(outFile);
+
         switch (selectedPatternClosure){
             case ALL:
                 System.out.print("All, ");
-                new ACSpan().run(seqDB, minSupAbs, outFile);
+                new ACSpan().run(parameters);
                 break;
             case CLOSED:
                 System.out.print("Closed, ");
-                new CCSpan().run(seqDB, minSupAbs, outFile);
+                new CCSpan().run(parameters);
                 break;
             case MAX:
                 System.out.print("Max, ");
-                new MCSpan().run(seqDB, minSupAbs, outFile);
+                new MCSpan().run(parameters);
                 break;
             case DISTINCT:
                 System.out.print("Distinct " + maxRedundancy + ", ");
@@ -83,15 +85,8 @@ public class MinePatternsContiguous {
                 if(!allPatternsFile.exists()){
                     System.out.println("Need output to mine, run AC-SPAN first.");
                 }else{
-                    new DCSpan().run(seqDB, new SPMFParser().parsePatterns(allPatternsFile), maxRedundancy, outFile);
+                    new DCSpan().run(parameters);
                 }
-                break;
-            case TOPK:
-                System.out.print("topk-" + topk);
-                AlgoTKS algo = new AlgoTKS();
-                algo.setMaxGap(1);
-                algo.runAlgorithm(inFile.getAbsolutePath(), outFile.getAbsolutePath(), topk);
-                algo.writeResultTofile(outFile.getAbsolutePath());
                 break;
         }
 

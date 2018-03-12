@@ -17,11 +17,22 @@ import java.util.List;
  *
  * @author Luke Bermingham
  */
-public abstract class AbstractContiguousSPM implements SPMAlgorithm {
+public abstract class AbstractContiguousSPM extends SPMAlgorithm {
 
     /////////////////
     //INTERNAL METHODS
     /////////////////
+
+
+    @Override
+    protected Collection<SequentialPattern> runImpl(SPMParameters params) {
+        if(params.getOutFile() != null){
+            run(params.getSequences(), params.getMinSup(), params.getOutFile());
+            return null;
+        }else{
+            return run(params.getSequences(), params.getMinSup());
+        }
+    }
 
     /**
      * In the paper this section is referred to as Algorithm 1.
@@ -34,7 +45,7 @@ public abstract class AbstractContiguousSPM implements SPMAlgorithm {
 
         int k = 1;
         //This loop is lines 1-10 in paper - keep generating closed patterns until you can't
-        while(addLengthKPatterns(f, k, minSupAbs, db, patternClosure) > 0){
+        while(addLengthKPatterns(f, k, minSupAbs, db, patternClosure) > 0 && isRunning.get()){
             k++;
         }
         return f;
@@ -54,6 +65,10 @@ public abstract class AbstractContiguousSPM implements SPMAlgorithm {
         ArrayList<Integer[]> candidates = new ArrayList<>();
 
         for (int[] sequence : db) {
+            if(!isRunning.get()){
+                return 0;
+            }
+
             if(sequence.length < k){
                 continue;
             }
@@ -108,18 +123,7 @@ public abstract class AbstractContiguousSPM implements SPMAlgorithm {
     //PUBLIC METHODS
     //////////////////
 
-
-    @Override
-    public void run(SPMParameters parameters, File outFile) {
-        run(parameters.getSequences(), parameters.getMinSup(), outFile);
-    }
-
-    @Override
-    public Collection<SequentialPattern> run(SPMParameters parameters) {
-        return run(parameters.getSequences(), parameters.getMinSup());
-    }
-
-    public Trie<Integer> populateTrie(int[][] sequences, int minSupAbs){
+    protected Trie<Integer> populateTrie(int[][] sequences, int minSupAbs){
         if(sequences.length == 0){
             throw new IllegalArgumentException(
                     "Cannot mine patterns from empty sequence database.");
@@ -133,12 +137,12 @@ public abstract class AbstractContiguousSPM implements SPMAlgorithm {
      * @param minSupAbs The minimum absolute support.
      * @return The contiguous sequential patterns.
      */
-    public List<SequentialPattern> run(int[][] sequences, int minSupAbs){
+    protected List<SequentialPattern> run(int[][] sequences, int minSupAbs){
         final Trie<Integer> patterns = populateTrie(sequences, minSupAbs);
         final TrieIterator<Integer> iter = patterns.getPatternIterator(true);
         final List<SequentialPattern> output = new ArrayList<>(sequences.length);
 
-        while(iter.hasNext()){
+        while(iter.hasNext() && isRunning.get()){
             ArrayList<Integer> pattern = iter.next();
             int support = iter.getCount();
             if(!addToOutput(pattern, iter)){
@@ -155,12 +159,12 @@ public abstract class AbstractContiguousSPM implements SPMAlgorithm {
      * @param minSupAbs The absolute minimum support.
      * @param outputFile The file to write to.
      */
-    public void run(int[][] sequences, int minSupAbs, File outputFile){
+    protected void run(int[][] sequences, int minSupAbs, File outputFile){
         final Trie<Integer> patterns = populateTrie(sequences, minSupAbs);
         final TrieIterator<Integer> iter = patterns.getPatternIterator(true);
         final SequentialPatternWriter writer = new SequentialPatternWriter(outputFile);
 
-        while(iter.hasNext()){
+        while(iter.hasNext() && isRunning.get()){
             ArrayList<Integer> pattern = iter.next();
             int support = iter.getCount();
             if(!addToOutput(pattern, iter)){
@@ -170,5 +174,7 @@ public abstract class AbstractContiguousSPM implements SPMAlgorithm {
         }
         writer.close();
     }
+
+
 
 }

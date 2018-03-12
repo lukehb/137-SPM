@@ -20,7 +20,7 @@ allprojects {
 
 repositories {
     //maven{url 'https://dl.bintray.com/lukehb/137-geo'} //geography module hosted on bintray
-    maven { url 'https://github.com/lukehb/137-jars/raw/master/repository' } //spmf
+    //maven { url 'https://github.com/lukehb/137-jars/raw/master/repository' } //spmf
     mavenCentral()
     mavenLocal()
 }
@@ -37,7 +37,6 @@ dependencies {
     compile group: 'onethreeseven', name: 'jclimod', version: '0.0.1-SNAPSHOT'
 
     //spmf
-    compile group: 'ca.pfv.spmf', name: 'spmf', version: '2.1.2'
 
     //geo
     //compile group: 'onethreeseven', name: 'geo', version: '0.0.4'

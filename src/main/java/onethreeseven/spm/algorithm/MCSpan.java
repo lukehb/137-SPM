@@ -30,7 +30,16 @@ public class MCSpan extends AbstractContiguousSPM {
 
     @Override
     public String toString() {
-        return "MCSpan(Max-Contiguous)";
+        return getSimpleName() + "(" + getPatternType() + ")";
     }
 
+    @Override
+    public String getSimpleName() {
+        return "mcspan";
+    }
+
+    @Override
+    public String getPatternType() {
+        return "max contiguous";
+    }
 }

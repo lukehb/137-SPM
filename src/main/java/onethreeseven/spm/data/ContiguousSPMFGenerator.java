@@ -33,7 +33,7 @@ public class ContiguousSPMFGenerator {
         return sequences;
     }
 
-    private int[][] generateSequences(){
+    public int[][] generateSequences(){
         int[][] patterns = generatePatterns();
         int[][] sequences = new int[nSequences][];
         Random rand = new Random();

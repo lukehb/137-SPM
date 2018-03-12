@@ -57,13 +57,17 @@ public class SPMFParser {
     public List<SequentialPattern> parsePatterns(File file){
         ArrayList<SequentialPattern> patterns = new ArrayList<>();
         try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
+            FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
             parseImpl(br, line -> {
                 SequentialPattern pattern =
                         parsePattern(line, SPMFParser.this.delimiter);
                 patterns.add(pattern);
             });
+            fr.close();
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return patterns;

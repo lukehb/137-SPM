@@ -26,6 +26,23 @@ public class ContiguousPatternMiningTest {
     @Test
     public void testTrie(){
         AbstractContiguousSPM algo = new AbstractContiguousSPM() {
+
+            @Override
+            public Trie<Integer> populateTrie(int[][] sequences, int minSupAbs) {
+                isRunning.set(true);
+                return super.populateTrie(sequences, minSupAbs);
+            }
+
+            @Override
+            public String getSimpleName() {
+                return "test";
+            }
+
+            @Override
+            public String getPatternType() {
+                return "test";
+            }
+
             @Override
             protected IPatternClosure getPatternClosure() {
                 return (supA, supB) -> true;
@@ -53,7 +70,10 @@ public class ContiguousPatternMiningTest {
         System.out.println("Closed patterns");
 
         final CCSpan algo = new CCSpan();
-        final List<SequentialPattern> actualPatterns = algo.run(db, 2);
+
+        SPMParameters params = new SPMParameters(db, 2);
+        final Collection<SequentialPattern> actualPatterns = algo.run(params);
+
         final List<SequentialPattern> expectedPatterns = new ArrayList<>();
 
         expectedPatterns.add(new SequentialPattern(new int[]{3,1}, 3));
@@ -61,9 +81,7 @@ public class ContiguousPatternMiningTest {
         expectedPatterns.add(new SequentialPattern(new int[]{2,3}, 4));
         expectedPatterns.add(new SequentialPattern(new int[]{1,2,3}, 3));
 
-        List<SequentialPattern> actual = algo.run(db, 2);
-
-        for (SequentialPattern actualPattern : actual) {
+        for (SequentialPattern actualPattern : actualPatterns) {
             System.out.println(actualPattern.toString());
             Assert.assertTrue(expectedPatterns.contains(actualPattern));
         }
@@ -79,15 +97,15 @@ public class ContiguousPatternMiningTest {
         System.out.println("Max patterns");
 
         final MCSpan algo = new MCSpan();
-        final List<SequentialPattern> actualPatterns = algo.run(db, 2);
+
+        SPMParameters params = new SPMParameters(db, 2);
+        final Collection<SequentialPattern> actualPatterns = algo.run(params);
         final List<SequentialPattern> expectedPatterns = new ArrayList<>();
 
         expectedPatterns.add(new SequentialPattern(new int[]{3,1}, 3));
         expectedPatterns.add(new SequentialPattern(new int[]{1,2,3}, 3));
 
-        List<SequentialPattern> actual = algo.run(db, 2);
-
-        for (SequentialPattern actualPattern : actual) {
+        for (SequentialPattern actualPattern : actualPatterns) {
             System.out.println(actualPattern.toString());
             Assert.assertTrue(expectedPatterns.contains(actualPattern));
         }
@@ -103,7 +121,10 @@ public class ContiguousPatternMiningTest {
         System.out.println("All patterns");
 
         final ACSpan algo = new ACSpan();
-        final List<SequentialPattern> actualPatterns = algo.run(db, 2);
+
+
+        SPMParameters params = new SPMParameters(db, 2);
+        final Collection<SequentialPattern> actualPatterns = algo.run(params);
         final List<SequentialPattern> expectedPatterns = new ArrayList<>();
 
         expectedPatterns.add(new SequentialPattern(new int[]{3}, 4));
@@ -114,9 +135,7 @@ public class ContiguousPatternMiningTest {
         expectedPatterns.add(new SequentialPattern(new int[]{2,3}, 4));
         expectedPatterns.add(new SequentialPattern(new int[]{1,2,3}, 3));
 
-        List<SequentialPattern> actual = algo.run(db, 2);
-
-        for (SequentialPattern actualPattern : actual) {
+        for (SequentialPattern actualPattern : actualPatterns) {
             System.out.println(actualPattern.toString());
             Assert.assertTrue(expectedPatterns.contains(actualPattern));
         }

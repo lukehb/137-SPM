@@ -32,4 +32,14 @@ public class ACSpan extends AbstractContiguousSPM {
     public String toString() {
         return "ACSpan(All-Contiguous)";
     }
+
+    @Override
+    public String getSimpleName() {
+        return "acspan";
+    }
+
+    @Override
+    public String getPatternType() {
+        return "all contiguous";
+    }
 }

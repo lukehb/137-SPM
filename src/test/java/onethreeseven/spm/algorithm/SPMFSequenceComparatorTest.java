@@ -1,9 +1,8 @@
 package onethreeseven.spm.algorithm;
 
-import onethreeseven.common.util.Res;
+import onethreeseven.spm.data.ContiguousSPMFGenerator;
 import org.junit.Assert;
 import org.junit.Test;
-import java.io.File;
 
 /**
  * Test {@link SPMFSequenceComparator}
@@ -11,7 +10,7 @@ import java.io.File;
  */
 public class SPMFSequenceComparatorTest {
 
-    private static final File spmfFile = new Res().getFile("9000.spmf");
+    private static final int[][] spmfFile = new ContiguousSPMFGenerator().generateSequences();
 
     @Test
     public void testContainsAllPatterns() throws Exception {

@@ -13,10 +13,12 @@ import java.io.IOException;
 public class SequentialPatternWriter {
 
     private BufferedWriter bw;
+    private FileWriter fw;
 
     public SequentialPatternWriter(File file){
         try {
-            this.bw = new BufferedWriter(new FileWriter(file, true));
+            this.fw = new FileWriter(file, true);
+            this.bw = new BufferedWriter(fw);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,6 +41,13 @@ public class SequentialPatternWriter {
         if(bw != null){
             try {
                 bw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if(fw != null){
+            try {
+                fw.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
