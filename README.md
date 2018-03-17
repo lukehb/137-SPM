@@ -1,5 +1,5 @@
 # What is this?
-Some sequential pattern mining algorithms I have written in Java. Both the source and a built application are provided for your usage.
+A module for [TrajSuite](https://github.com/lukehb/TrajSuite). Some sequential pattern mining algorithms I have written in Java. Both the source and a built application are provided for your usage.
 # What is sequential pattern mining
 In laymen's terms, sequential pattern mining is the process of finding frequently occuring sub-sequences from a set of sequences. For a formal definition see [SPMF](http://www.philippe-fournier-viger.com/spmf/index.php?link=documentation.php#examplePrefixSpan). In this module the input sequences are simply a text file in the SPMF format, like:
 
